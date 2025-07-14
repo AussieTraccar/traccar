@@ -193,10 +193,10 @@ public class TeltonikaProtocolDecoder extends BaseProtocolDecoder {
 
     static {
         var fmbXXX = Set.of(
-                "FMB001", "FMC001", "FMB010", "FMB002", "FMB020", "FMB003", "FMB110", "FMB120", "FMB122", "FMB125",
-                "FMB130", "FMB140", "FMU125", "FMB900", "FMB920", "FMB962", "FMB964", "FM3001", "FMB202", "FMB204",
-                "FMB206", "FMT100", "MTB100", "FMP100", "MSP500", "FMC125", "FMM125", "FMU130", "FMC130", "FMM130",
-                "FMB150", "FMC150", "FMM150", "FMC920");
+                "FMB001", "FMC001", "FMB010", "FMB002", "FMB020", "FMB003", "FMC003", "FMB110", "FMB120", "FMB122",
+                "FMB125","FMB130", "FMB140", "FMU125", "FMB900", "FMB920", "FMB962", "FMB964", "FM3001", "FMB202",
+                "FMB204","FMB206", "FMT100", "MTB100", "FMP100", "MSP500", "FMC125", "FMM125", "FMU130", "FMC130",
+                "FMM130","FMB150", "FMC150", "FMM150", "FMC920");
 
         register(1, null, (p, b) -> p.set(Position.PREFIX_IN + 1, b.readUnsignedByte() > 0));
         register(2, null, (p, b) -> p.set(Position.PREFIX_IN + 2, b.readUnsignedByte() > 0));
@@ -217,11 +217,11 @@ public class TeltonikaProtocolDecoder extends BaseProtocolDecoder {
         register(26, null, (p, b) -> p.set("bleTemp2", b.readShort() * 0.01));
         register(27, null, (p, b) -> p.set("bleTemp3", b.readShort() * 0.01));
         register(28, null, (p, b) -> p.set("bleTemp4", b.readShort() * 0.01));
-        register(30, fmbXXX, (p, b) -> p.set("faultCount", b.readUnsignedByte()));
+        register(30, fmbXXX, (p, b) -> p.set(Position.KEY_FAULT_COUNT, b.readUnsignedByte()));
         register(31, fmbXXX, (p, b) -> p.set(Position.KEY_ENGINE_LOAD, b.readUnsignedByte()));
         register(32, fmbXXX, (p, b) -> p.set(Position.KEY_COOLANT_TEMP, b.readByte()));
         register(36, fmbXXX, (p, b) -> p.set(Position.KEY_RPM, b.readUnsignedShort()));
-        register(43, fmbXXX, (p, b) -> p.set("milDistance", b.readUnsignedShort()));
+        register(43, fmbXXX, (p, b) -> p.set(Position.KEY_MIL_DISTANCE, b.readUnsignedShort()));
         register(57, fmbXXX, (p, b) -> p.set("hybridBatteryLevel", b.readByte()));
         register(66, null, (p, b) -> p.set(Position.KEY_POWER, b.readUnsignedShort() * 0.001));
         register(67, null, (p, b) -> p.set(Position.KEY_BATTERY, b.readUnsignedShort() * 0.001));
