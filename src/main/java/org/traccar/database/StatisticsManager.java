@@ -117,40 +117,6 @@ public class StatisticsManager {
             } catch (StorageException e) {
                 LOGGER.warn("Error saving statistics", e);
             }
-
-            String url = config.getString(Keys.SERVER_STATISTICS);
-            if (url != null && !url.isEmpty()) {
-                String time = DateUtil.formatDate(statistics.getCaptureTime());
-
-                Form form = new Form();
-                form.param("version", getClass().getPackage().getImplementationVersion());
-                form.param("captureTime", time);
-                form.param("activeUsers", String.valueOf(statistics.getActiveUsers()));
-                form.param("activeDevices", String.valueOf(statistics.getActiveDevices()));
-                form.param("requests", String.valueOf(statistics.getRequests()));
-                form.param("messagesReceived", String.valueOf(statistics.getMessagesReceived()));
-                form.param("messagesStored", String.valueOf(statistics.getMessagesStored()));
-                form.param("mailSent", String.valueOf(statistics.getMailSent()));
-                form.param("smsSent", String.valueOf(statistics.getSmsSent()));
-                form.param("geocoderRequests", String.valueOf(statistics.getGeocoderRequests()));
-                form.param("geolocationRequests", String.valueOf(statistics.getGeolocationRequests()));
-                if (statistics.getProtocols() != null) {
-                    try {
-                        form.param("protocols", objectMapper.writeValueAsString(statistics.getProtocols()));
-                    } catch (JsonProcessingException e) {
-                        LOGGER.warn("Failed to serialize protocols", e);
-                    }
-                }
-                if (!statistics.getAttributes().isEmpty()) {
-                    try {
-                        form.param("attributes", objectMapper.writeValueAsString(statistics.getAttributes()));
-                    } catch (JsonProcessingException e) {
-                        LOGGER.warn("Failed to serialize attributes", e);
-                    }
-                }
-
-                client.target(url).request().async().post(Entity.form(form));
-            }
         }
     }
 
