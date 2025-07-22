@@ -27,6 +27,8 @@ public class PortConfigSuffix extends ConfigSuffix<Integer> {
         PORTS.put("freematics", 5170);
         PORTS.put("gt06", 5023);
         PORTS.put("h02", 5013);
+        PORTS.put("jt600", 5014);
+        PORTS.put("huabao", 5015);
         PORTS.put("osmand", 5055);
         PORTS.put("teltonika", 5027);
       }

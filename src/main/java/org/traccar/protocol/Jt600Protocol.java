@@ -15,6 +15,7 @@
  */
 package org.traccar.protocol;
 
+import io.netty.handler.codec.string.StringEncoder;
 import org.traccar.BaseProtocol;
 import org.traccar.PipelineBuilder;
 import org.traccar.TrackerServer;
@@ -23,22 +24,22 @@ import org.traccar.model.Command;
 
 import jakarta.inject.Inject;
 
-public class Gt06Protocol extends BaseProtocol {
+public class Jt600Protocol extends BaseProtocol {
 
     @Inject
-    public Gt06Protocol(Config config) {
+    public Jt600Protocol(Config config) {
         setSupportedDataCommands(
-                Command.TYPE_OUTPUT_CONTROL,
-                Command.TYPE_REBOOT_DEVICE,
-                Command.TYPE_ENGINE_STOP,
                 Command.TYPE_ENGINE_RESUME,
-                Command.TYPE_CUSTOM);
+                Command.TYPE_ENGINE_STOP,
+                Command.TYPE_SET_TIMEZONE,
+                Command.TYPE_REBOOT_DEVICE);
         addServer(new TrackerServer(config, getName(), false) {
             @Override
             protected void addProtocolHandlers(PipelineBuilder pipeline, Config config) {
-                pipeline.addLast(new Gt06FrameDecoder());
-                pipeline.addLast(new Gt06ProtocolEncoder(Gt06Protocol.this));
-                pipeline.addLast(new Gt06ProtocolDecoder(Gt06Protocol.this));
+                pipeline.addLast(new Jt600FrameDecoder());
+                pipeline.addLast(new StringEncoder());
+                pipeline.addLast(new Jt600ProtocolEncoder(Jt600Protocol.this));
+                pipeline.addLast(new Jt600ProtocolDecoder(Jt600Protocol.this));
             }
         });
     }

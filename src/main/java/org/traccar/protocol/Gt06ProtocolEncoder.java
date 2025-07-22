@@ -76,22 +76,18 @@ public class Gt06ProtocolEncoder extends BaseProtocolEncoder {
         String model = getDeviceModel(command.getDeviceId());
 
         switch (command.getType()) {
+            case Command.TYPE_OUTPUT_CONTROL:
+                return encodeContent(command.getDeviceId(), "Find#");
+            case Command.TYPE_REBOOT_DEVICE:
+                return encodeContent(command.getDeviceId(), "Reset#");
             case Command.TYPE_ENGINE_STOP:
-                if ("G109".equals(model)) {
-                    return encodeContent(command.getDeviceId(), "DYD#");
-                } else if (alternative) {
-                    return encodeContent(command.getDeviceId(), "DYD," + password + "#");
+                if (alternative) {
+                    return encodeContent(command.getDeviceId(), "Relay,1," + password + "#");
                 } else {
                     return encodeContent(command.getDeviceId(), "Relay,1#");
                 }
             case Command.TYPE_ENGINE_RESUME:
-                if ("G109".equals(model)) {
-                    return encodeContent(command.getDeviceId(), "HFYD#");
-                } else if (alternative) {
-                    return encodeContent(command.getDeviceId(), "HFYD," + password + "#");
-                } else {
-                    return encodeContent(command.getDeviceId(), "Relay,0#");
-                }
+                return encodeContent(command.getDeviceId(), "Relay,0#");
             case Command.TYPE_CUSTOM:
                 return encodeContent(command.getDeviceId(), command.getString(Command.KEY_DATA));
             default:
