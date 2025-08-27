@@ -44,7 +44,7 @@ public final class UserUtil {
     }
 
     public static String getSpeedUnit(Server server, User user) {
-        return lookupStringAttribute(server, user, "speedUnit", "kn");
+        return lookupStringAttribute(server, user, "speedUnit", "kmh");
     }
 
     public static String getVolumeUnit(Server server, User user) {
@@ -52,8 +52,12 @@ public final class UserUtil {
     }
 
     public static TimeZone getTimezone(Server server, User user) {
-        String timezone = lookupStringAttribute(server, user, "timezone", null);
+        String timezone = lookupStringAttribute(server, user, "timezone", "Australia/NSW");
         return timezone != null ? TimeZone.getTimeZone(timezone) : TimeZone.getDefault();
+    }
+
+    public static String getLanguage(Server server, User user) {
+        return lookupStringAttribute(server, user, "language", null);
     }
 
     private static String lookupStringAttribute(Server server, User user, String key, String defaultValue) {
