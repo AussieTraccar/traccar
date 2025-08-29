@@ -245,6 +245,7 @@ public class ConnectionManager implements BroadcastInterface {
 
             eventType = switch (status) {
                 case Device.STATUS_ONLINE -> Event.TYPE_DEVICE_ONLINE;
+                case Device.STATUS_UNKNOWN -> Event.TYPE_DEVICE_UNKNOWN;
                 default -> Event.TYPE_DEVICE_OFFLINE;
             };
 

@@ -24,6 +24,16 @@ import java.util.Date;
 @StorageName("tc_devices")
 public class Device extends GroupedModel implements Disableable, Schedulable {
 
+    private boolean categoryAvatar;
+
+    public boolean getCategoryAvatar() {
+        return categoryAvatar;
+    }
+
+    public void setCategoryAvatar(boolean categoryAvatar) {
+        this.categoryAvatar = categoryAvatar;
+    }
+
     private long calendarId;
 
     @Override
@@ -67,7 +77,8 @@ public class Device extends GroupedModel implements Disableable, Schedulable {
 
     @QueryIgnore
     public String getStatus() {
-        return status != null ? status : STATUS_OFFLINE;
+        // return status != null ? status : STATUS_OFFLINE;
+        return status != null ? (status.equals(STATUS_UNKNOWN) ? STATUS_OFFLINE : status) : STATUS_OFFLINE;
     }
 
     public void setStatus(String status) {
