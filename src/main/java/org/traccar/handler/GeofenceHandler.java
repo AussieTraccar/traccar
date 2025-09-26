@@ -25,19 +25,17 @@ import java.util.List;
 
 public class GeofenceHandler extends BasePositionHandler {
 
-    private final Config config;
     private final CacheManager cacheManager;
 
     @Inject
-    public GeofenceHandler(Config config, CacheManager cacheManager) {
-        this.config = config;
+    public GeofenceHandler(CacheManager cacheManager) {
         this.cacheManager = cacheManager;
     }
 
     @Override
     public void onPosition(Position position, Callback callback) {
 
-        List<Long> geofenceIds = GeofenceUtil.getCurrentGeofences(config, cacheManager, position);
+        List<Long> geofenceIds = GeofenceUtil.getCurrentGeofences(cacheManager, position);
         if (!geofenceIds.isEmpty()) {
             position.setGeofenceIds(geofenceIds);
         }

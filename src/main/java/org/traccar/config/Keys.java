@@ -272,15 +272,6 @@ public final class Keys {
             5.0);
 
     /**
-     * Global polyline geofence distance. Within that distance from the polyline, point is considered within the
-     * geofence. Each individual geofence can also have the 'polylineDistance' attribute which will take precedence.
-     */
-    public static final ConfigKey<Double> GEOFENCE_POLYLINE_DISTANCE = new DoubleConfigKey(
-            "geofence.polylineDistance",
-            List.of(KeyType.CONFIG),
-            25.0);
-
-    /**
      * Enable in-memory database instead of an SQL database.
      */
     public static final ConfigKey<Boolean> DATABASE_MEMORY = new BooleanConfigKey(
