@@ -60,7 +60,7 @@ public class NotificatorFirebase extends Notificator {
             FirebaseClient firebaseClient, NotificationFormatter notificationFormatter,
             Storage storage, CacheManager cacheManager) throws IOException {
 
-        super(notificationFormatter, "short");
+        super(notificationFormatter);
         this.firebaseClient = firebaseClient;
         this.storage = storage;
         this.cacheManager = cacheManager;

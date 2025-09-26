@@ -46,7 +46,7 @@ public class NotificationFormatter {
     }
 
     public NotificationMessage formatMessage(
-            Notification notification, User user, Event event, Position position, String templatePath) {
+            Notification notification, User user, Event event, Position position) {
 
         Server server = cacheManager.getServer();
         Device device = cacheManager.getObject(Device.class, event.getDeviceId());
@@ -75,7 +75,7 @@ public class NotificationFormatter {
         }
 
         boolean priority = notification != null && notification.getBoolean("priority");
-        return textTemplateFormatter.formatMessage(velocityContext, event.getType(), templatePath, priority);
+        return textTemplateFormatter.formatMessage(velocityContext, event.getType(), priority);
     }
 
 }

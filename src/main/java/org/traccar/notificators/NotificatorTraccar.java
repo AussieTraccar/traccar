@@ -75,7 +75,7 @@ public class NotificatorTraccar extends Notificator {
     public NotificatorTraccar(
             Config config, NotificationFormatter notificationFormatter, Client client,
             Storage storage, CacheManager cacheManager) {
-        super(notificationFormatter, "short");
+        super(notificationFormatter);
         this.client = client;
         this.storage = storage;
         this.cacheManager = cacheManager;
@@ -89,7 +89,7 @@ public class NotificatorTraccar extends Notificator {
 
             NotificationObject item = new NotificationObject();
             item.title = shortMessage.subject();
-            item.body = shortMessage.body();
+            item.body = shortMessage.digest();
             item.sound = "default";
 
             String[] tokenArray = user.getString("notificationTokens").split("[, ]");
