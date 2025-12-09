@@ -44,7 +44,6 @@ public class ScheduleManager implements LifecycleObject {
     public void start() {
         executor = Executors.newSingleThreadScheduledExecutor();
         Stream.of(
-                TaskHealthCheck.class,
                 TaskClearStatus.class,
                 TaskExpirations.class,
                 TaskDeleteTemporary.class,
