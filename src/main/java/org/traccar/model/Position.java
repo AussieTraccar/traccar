@@ -83,7 +83,10 @@ public class Position extends Message {
     public static final String KEY_ACCELERATION = "acceleration";
     public static final String KEY_HUMIDITY = "humidity";
     public static final String KEY_DEVICE_TEMP = "deviceTemp"; // celsius
+    public static final String KEY_AMBIENT_TEMP = "ambientTemp"; // celsius
     public static final String KEY_COOLANT_TEMP = "coolantTemp"; // celsius
+    public static final String KEY_INTAKE_TEMP = "intakeTemp"; // celsius
+    public static final String KEY_OIL_TEMP = "oilTemp"; // celsius
     public static final String KEY_ENGINE_LOAD = "engineLoad";
     public static final String KEY_ENGINE_TEMP = "engineTemp";
     public static final String KEY_OPERATOR = "operator";
