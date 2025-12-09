@@ -84,13 +84,6 @@ public final class Keys {
             List.of(KeyType.CONFIG));
 
     /**
-     * Default protocol mask to use. Currently used only by Skypatrol protocol.
-     */
-    public static final ConfigSuffix<Integer> PROTOCOL_MASK = new IntegerConfigSuffix(
-            ".mask",
-            List.of(KeyType.CONFIG));
-
-    /**
      * Custom message length. Currently used only by H2 protocol for specifying binary message length.
      */
     public static final ConfigSuffix<Integer> PROTOCOL_MESSAGE_LENGTH = new IntegerConfigSuffix(
@@ -106,97 +99,12 @@ public final class Keys {
             List.of(KeyType.CONFIG));
 
     /**
-     * Decode string as UTF8 instead of ASCII. Only applicable for some protocols.
-     */
-    public static final ConfigSuffix<Boolean> PROTOCOL_UTF8 = new BooleanConfigSuffix(
-            ".utf8",
-            List.of(KeyType.CONFIG));
-
-    /**
-     * Enable CAN decoding for the protocol. Similar to 'extended' configuration, it's not supported for some devices.
-     */
-    public static final ConfigSuffix<Boolean> PROTOCOL_CAN = new BooleanConfigSuffix(
-            ".can",
-            List.of(KeyType.CONFIG));
-
-    /**
      * Indicates whether server acknowledgement is required. Only applicable for some protocols.
      */
     public static final ConfigSuffix<Boolean> PROTOCOL_ACK = new BooleanConfigSuffix(
             ".ack",
             List.of(KeyType.CONFIG, KeyType.DEVICE),
             false);
-
-    /**
-     * Ignore device reported fix time. Useful in case some devices report invalid time. Currently only available for
-     * GL200 protocol.
-     */
-    public static final ConfigSuffix<Boolean> PROTOCOL_IGNORE_FIX_TIME = new BooleanConfigSuffix(
-            ".ignoreFixTime",
-            List.of(KeyType.CONFIG));
-
-    /**
-     * Decode additional TK103 attributes. Not supported for some devices.
-     */
-    public static final ConfigSuffix<Boolean> PROTOCOL_DECODE_LOW = new BooleanConfigSuffix(
-            ".decodeLow",
-            List.of(KeyType.CONFIG));
-
-    /**
-     * Use long date format for Atrack protocol.
-     */
-    public static final ConfigSuffix<Boolean> PROTOCOL_LONG_DATE = new BooleanConfigSuffix(
-            ".longDate",
-            List.of(KeyType.CONFIG));
-
-    /**
-     * Use decimal fuel value format for Atrack protocol.
-     */
-    public static final ConfigSuffix<Boolean> PROTOCOL_DECIMAL_FUEL = new BooleanConfigSuffix(
-            ".decimalFuel",
-            List.of(KeyType.CONFIG));
-
-    /**
-     * Indicates additional custom attributes for Atrack protocol.
-     */
-    public static final ConfigSuffix<Boolean> PROTOCOL_CUSTOM = new BooleanConfigSuffix(
-            ".custom",
-            List.of(KeyType.CONFIG));
-
-    /**
-     * Custom format string for Atrack protocol.
-     */
-    public static final ConfigSuffix<String> PROTOCOL_FORM = new StringConfigSuffix(
-            ".form",
-            List.of(KeyType.CONFIG));
-
-    /**
-     * Frame mask for Atrack protocol.
-     */
-    public static final ConfigSuffix<Integer> PROTOCOL_FRAME_MASK = new IntegerConfigSuffix(
-            ".frameMask",
-            List.of(KeyType.CONFIG));
-
-    /**
-     * Protocol configuration. Required for some devices for decoding incoming data.
-     */
-    public static final ConfigSuffix<String> PROTOCOL_CONFIG = new StringConfigSuffix(
-            ".config",
-            List.of(KeyType.CONFIG));
-
-    /**
-     * Alarm mapping for Atrack protocol.
-     */
-    public static final ConfigSuffix<String> PROTOCOL_ALARM_MAP = new StringConfigSuffix(
-            ".alarmMap",
-            List.of(KeyType.CONFIG));
-
-    /**
-     * Indicates whether TAIP protocol should have prefixes for messages.
-     */
-    public static final ConfigSuffix<Boolean> PROTOCOL_PREFIX = new BooleanConfigSuffix(
-            ".prefix",
-            List.of(KeyType.CONFIG));
 
     /**
      * Some devices require server address confirmation. Use this parameter to configure correct public address.
@@ -206,82 +114,12 @@ public final class Keys {
             List.of(KeyType.CONFIG));
 
     /**
-     * Protocol type for Suntech.
-     */
-    public static final ConfigKey<Integer> PROTOCOL_TYPE = new IntegerConfigKey(
-            "suntech.protocolType",
-            List.of(KeyType.CONFIG, KeyType.DEVICE));
-
-    /**
-     * Suntech HBM configuration value.
-     */
-    public static final ConfigKey<Integer> PROTOCOL_HBM = new IntegerConfigKey(
-            "suntech.hbm",
-            List.of(KeyType.CONFIG, KeyType.DEVICE));
-
-    /**
-     * Format includes ADC value.
-     */
-    public static final ConfigSuffix<Boolean> PROTOCOL_INCLUDE_ADC = new BooleanConfigSuffix(
-            ".includeAdc",
-            List.of(KeyType.CONFIG, KeyType.DEVICE));
-
-    /**
-     * Format includes RPM value.
-     */
-    public static final ConfigSuffix<Boolean> PROTOCOL_INCLUDE_RPM = new BooleanConfigSuffix(
-            ".includeRpm",
-            List.of(KeyType.CONFIG, KeyType.DEVICE));
-
-    /**
-     * Format includes temperature values.
-     */
-    public static final ConfigSuffix<Boolean> PROTOCOL_INCLUDE_TEMPERATURE = new BooleanConfigSuffix(
-            ".includeTemp",
-            List.of(KeyType.CONFIG, KeyType.DEVICE));
-
-    /**
-     * Disable commands for the protocol. Not all protocols support this option.
-     */
-    public static final ConfigSuffix<Boolean> PROTOCOL_DISABLE_COMMANDS = new BooleanConfigSuffix(
-            ".disableCommands",
-            List.of(KeyType.CONFIG));
-
-    /**
-     * Protocol format. Used by protocols that have configurable message format.
-     */
-    public static final ConfigSuffix<String> PROTOCOL_FORMAT = new StringConfigSuffix(
-            ".format",
-            List.of(KeyType.CONFIG, KeyType.DEVICE));
-
-    /**
-     * Protocol date format. Used by protocols that have configurable date format.
-     */
-    public static final ConfigSuffix<String> PROTOCOL_DATE_FORMAT = new StringConfigSuffix(
-            ".dateFormat",
-            List.of(KeyType.DEVICE));
-
-    /**
      * Device time zone. Most devices report UTC time, but in some cases devices report local time, so this parameter
      * needs to be configured for the server to be able to decode the time correctly.
      */
     public static final ConfigKey<String> DECODER_TIMEZONE = new StringConfigKey(
             "decoder.timezone",
             List.of(KeyType.CONFIG, KeyType.DEVICE));
-
-    /**
-     * ORBCOMM API access id.
-     */
-    public static final ConfigKey<String> ORBCOMM_ACCESS_ID = new StringConfigKey(
-            "orbcomm.accessId",
-            List.of(KeyType.CONFIG));
-
-    /**
-     * ORBCOMM API password.
-     */
-    public static final ConfigKey<String> ORBCOMM_PASSWORD = new StringConfigKey(
-            "orbcomm.password",
-            List.of(KeyType.CONFIG));
 
     /**
      * Use alternative format for the protocol of commands.
@@ -385,7 +223,8 @@ public final class Keys {
      */
     public static final ConfigKey<Boolean> DEVICE_SHARE_DISABLE = new BooleanConfigKey(
             "disableShare",
-            List.of(KeyType.SERVER));
+            List.of(KeyType.SERVER),
+            true);
 
     /**
      * Speed limit threshold multiplier. For example, if the speed limit is 100, but we only want to generate an event
@@ -438,7 +277,7 @@ public final class Keys {
     public static final ConfigKey<Double> EVENT_MOTION_SPEED_THRESHOLD = new DoubleConfigKey(
             "event.motion.speedThreshold",
             List.of(KeyType.CONFIG, KeyType.DEVICE),
-            0.01);
+            5.0);
 
     /**
      * Enable in-memory database instead of an SQL database.
@@ -519,14 +358,16 @@ public final class Keys {
      */
     public static final ConfigKey<Boolean> DATABASE_THROTTLE_UNKNOWN = new BooleanConfigKey(
             "database.throttleUnknown",
-            List.of(KeyType.CONFIG));
+            List.of(KeyType.CONFIG),
+            true);
 
     /**
      * Automatically register unknown devices in the database.
      */
     public static final ConfigKey<Boolean> DATABASE_REGISTER_UNKNOWN = new BooleanConfigKey(
             "database.registerUnknown",
-            List.of(KeyType.CONFIG));
+            List.of(KeyType.CONFIG),
+            false);
 
     /**
      * Default category for auto-registered devices.
@@ -565,7 +406,7 @@ public final class Keys {
             -1);
 
     /**
-     * Default user expiration for self registered users. Value is in days. By default no expiration is set.
+     * Default user expiration for self registered users. Value is in days. By default, no expiration is set.
      */
     public static final ConfigKey<Integer> USERS_DEFAULT_EXPIRATION_DAYS = new IntegerConfigKey(
             "users.defaultExpirationDays",
@@ -774,7 +615,7 @@ public final class Keys {
             "./media");
 
     /**
-     * Optional parameter to specify network interface for web interface to bind to. By default server will bind to all
+     * Optional parameter to specify network interface for web interface to bind to. By default, server will bind to all
      * available interfaces.
      */
     public static final ConfigKey<String> WEB_ADDRESS = new StringConfigKey(
@@ -830,7 +671,7 @@ public final class Keys {
             300000L);
 
     /**
-     * Authentication sessions timeout in seconds. By default no timeout.
+     * Authentication sessions timeout in seconds. By default, no timeout.
      */
     public static final ConfigKey<Integer> WEB_SESSION_TIMEOUT = new IntegerConfigKey(
             "web.sessionTimeout",
@@ -1266,7 +1107,7 @@ public final class Keys {
             List.of(KeyType.CONFIG));
 
     /**
-     * Pushover notification user name.
+     * Pushover notification user key.
      */
     public static final ConfigKey<String> NOTIFICATOR_PUSHOVER_USER = new StringConfigKey(
             "notificator.pushover.user",
@@ -1421,7 +1262,8 @@ public final class Keys {
      */
     public static final ConfigKey<Boolean> FILTER_INVALID = new BooleanConfigKey(
             "filter.invalid",
-            List.of(KeyType.CONFIG));
+            List.of(KeyType.CONFIG),
+            true);
 
     /**
      * Filter zero coordinates. Zero latitude and longitude are theoretically valid values, but it practice it usually
@@ -1429,14 +1271,16 @@ public final class Keys {
      */
     public static final ConfigKey<Boolean> FILTER_ZERO = new BooleanConfigKey(
             "filter.zero",
-            List.of(KeyType.CONFIG));
+            List.of(KeyType.CONFIG),
+            true);
 
     /**
      * Filter duplicate records (duplicates are detected by time value).
      */
     public static final ConfigKey<Boolean> FILTER_DUPLICATE = new BooleanConfigKey(
             "filter.duplicate",
-            List.of(KeyType.CONFIG));
+            List.of(KeyType.CONFIG),
+            true);
 
     /**
      * Filter messages that do not have GPS location. If they are not filtered, they will include the last known
@@ -1471,21 +1315,41 @@ public final class Keys {
             List.of(KeyType.CONFIG));
 
     /**
-     * Filter cell and wifi locations that are coming from geolocation provider.
+     * Filter cell and wi-Fi locations that are coming from geolocation provider.
      */
     public static final ConfigKey<Boolean> FILTER_APPROXIMATE = new BooleanConfigKey(
             "filter.approximate",
-            List.of(KeyType.CONFIG));
+            List.of(KeyType.CONFIG),
+            false);
 
     /**
      * Filter positions with exactly zero speed values.
      */
     public static final ConfigKey<Boolean> FILTER_STATIC = new BooleanConfigKey(
             "filter.static",
-            List.of(KeyType.CONFIG));
+            List.of(KeyType.CONFIG),
+            false);
+
 
     /**
-     * Filter records by distance. The values is specified in meters. If the new position is less far than this value
+     * Filter static positions based on protocol.
+     * If position contains any protocol mentioned in "filter.static.protocol" config key, protocol gets filtered out.
+     */
+    public static final ConfigKey<String> FILTER_STATIC_PROTOCOLS = new StringConfigKey(
+            "filter.static.protocols",
+            List.of(KeyType.CONFIG),
+            "");
+
+    /**
+     * Filter positions with determined static movement gets filtered out.
+     */
+    public static final ConfigKey<Boolean> FILTER_STATIC_MOVE = new BooleanConfigKey(
+            "filter.static.move",
+            List.of(KeyType.CONFIG),
+            false);
+
+    /**
+     * Filter records by distance. The values are specified in metres. If the new position is less far than this value
      * from the last one it gets filtered out.
      */
     public static final ConfigKey<Integer> FILTER_DISTANCE = new IntegerConfigKey(
@@ -1611,7 +1475,8 @@ public final class Keys {
      */
     public static final ConfigKey<Boolean> PROCESSING_REMOTE_ADDRESS_ENABLE = new BooleanConfigKey(
             "processing.remoteAddress.enable",
-            List.of(KeyType.CONFIG));
+            List.of(KeyType.CONFIG),
+            true);
 
     /**
      * Use linked driver id for positions if a device does not send driver id.
@@ -1655,7 +1520,8 @@ public final class Keys {
      */
     public static final ConfigKey<Boolean> PROCESSING_COMPUTED_ATTRIBUTES_LOCAL_VARIABLES = new BooleanConfigKey(
             "processing.computedAttributes.localVariables",
-            List.of(KeyType.CONFIG));
+            List.of(KeyType.CONFIG),
+            true);
 
     /**
      * Enable loops processing.
@@ -1749,7 +1615,7 @@ public final class Keys {
             true);
 
     /**
-     * Boolean flag to enable LBS location resolution. Some devices send cell towers information and WiFi point when GPS
+     * Boolean flag to enable LBS location resolution. Some devices send cell towers information and Wi-Fi point when GPS
      * location is not available. Traccar can determine coordinates based on that information using third party
      * services. Default value is false.
      */
@@ -1758,7 +1624,7 @@ public final class Keys {
             List.of(KeyType.CONFIG));
 
     /**
-     * Provider to use for LBS location. Available options: google, unwired and opencellid. By default, google is
+     * Provider to use for LBS location. Available options: google, unwired and opencellid. By default, Google is
      * used. You have to supply a key that you get from corresponding provider. For more information see LBS geolocation
      * documentation.
      */
@@ -1823,7 +1689,7 @@ public final class Keys {
             List.of(KeyType.CONFIG));
 
     /**
-     * Provider to use for speed limit. Available options: overpass. By default overpass is used.
+     * Provider to use for speed limit. Available options: overpass. By default, overpass is used.
      */
     public static final ConfigKey<String> SPEED_LIMIT_TYPE = new StringConfigKey(
             "speedLimit.type",
@@ -1878,13 +1744,6 @@ public final class Keys {
             List.of(KeyType.CONFIG));
 
     /**
-     * Disable systemd health checks.
-     */
-    public static final ConfigKey<Boolean> WEB_DISABLE_HEALTH_CHECK = new BooleanConfigKey(
-            "web.disableHealthCheck",
-            List.of(KeyType.CONFIG));
-
-    /**
      * If this parameter is set, Traccar will monitor drops in the number of stored messages. If it drops more than
      * the threshold, it will mark service as failing for systemd. Threshold is a value from 0.0 to 1.0. For example,
      * value 0.7 means that the number of messages in the last period is only 70% of what it was in the previous.
@@ -1928,14 +1787,16 @@ public final class Keys {
      */
     public static final ConfigKey<Boolean> WEB_SHARE_DEVICE_COMMANDS = new BooleanConfigKey(
             "web.shareDevice.commands",
-            List.of(KeyType.CONFIG));
+            List.of(KeyType.CONFIG),
+            false);
 
     /**
      * Enable reports for a shared device.
      */
     public static final ConfigKey<Boolean> WEB_SHARE_DEVICE_REPORTS = new BooleanConfigKey(
             "web.shareDevice.reports",
-            List.of(KeyType.CONFIG));
+            List.of(KeyType.CONFIG),
+            false);
 
     /**
      * Enable MCP service.
@@ -1976,7 +1837,7 @@ public final class Keys {
             "info");
 
     /**
-     * Print full exception traces. Useful for debugging. By default shortened traces are logged.
+     * Print full exception traces. Useful for debugging. By default, shortened traces are logged.
      */
     public static final ConfigKey<Boolean> LOGGER_FULL_STACK_TRACES = new BooleanConfigKey(
             "logger.fullStackTraces",
