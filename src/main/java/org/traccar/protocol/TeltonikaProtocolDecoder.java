@@ -216,11 +216,11 @@ public class TeltonikaProtocolDecoder extends BaseProtocolDecoder {
         register(26, any, (p, b) -> p.set("bleTemp2", b.readShort() * 0.01));
         register(27, any, (p, b) -> p.set("bleTemp3", b.readShort() * 0.01));
         register(28, any, (p, b) -> p.set("bleTemp4", b.readShort() * 0.01));
-        register(30, fmbXXX, (p, b) -> p.set("faultCount", b.readUnsignedByte()));
+        register(30, fmbXXX, (p, b) -> p.set(Position.KEY_FAULT_COUNT, b.readUnsignedByte()));
         register(31, fmbXXX, (p, b) -> p.set(Position.KEY_ENGINE_LOAD, b.readUnsignedByte()));
         register(32, fmbXXX, (p, b) -> p.set(Position.KEY_COOLANT_TEMP, b.readByte()));
         register(36, fmbXXX, (p, b) -> p.set(Position.KEY_RPM, b.readUnsignedShort()));
-        register(43, fmbXXX, (p, b) -> p.set("milDistance", b.readUnsignedShort()));
+        register(43, fmbXXX, (p, b) -> p.set(Position.KEY_MIL_DISTANCE, b.readUnsignedShort()));
         register(57, fmbXXX, (p, b) -> p.set("hybridBatteryLevel", b.readByte()));
         register(66, any, (p, b) -> p.set(Position.KEY_POWER, b.readUnsignedShort() * 0.001));
         register(67, any, (p, b) -> p.set(Position.KEY_BATTERY, b.readUnsignedShort() * 0.001));
