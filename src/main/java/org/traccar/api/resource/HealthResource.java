@@ -66,13 +66,6 @@ public class HealthResource extends BaseResource {
         synchronized (HealthResource.class) {
             long messageCurrentTotal = statisticsManager.messageStoredCount();
             long messageCurrentCheck = messageCurrentTotal - messageLastTotal;
-            double dropThreshold = config.getDouble(Keys.WEB_HEALTH_CHECK_DROP_THRESHOLD);
-            if (dropThreshold > 0 && messageLastCheck > 0 && messageCurrentCheck > 0) {
-                double ratio = messageCurrentCheck / (double) messageLastCheck;
-                if (ratio < dropThreshold) {
-                    throw new IllegalStateException("Message health check failed with ratio " + ratio);
-                }
-            }
             messageLastTotal = messageCurrentTotal;
             messageLastCheck = messageCurrentCheck;
         }
