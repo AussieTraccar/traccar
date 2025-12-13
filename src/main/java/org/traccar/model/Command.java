@@ -32,7 +32,7 @@ public class Command extends BaseCommand {
     public static final String TYPE_ALARM_ARM = "alarmArm";
     public static final String TYPE_ALARM_DISARM = "alarmDisarm";
     public static final String TYPE_REBOOT_DEVICE = "rebootDevice";
-    public static final String TYPE_SET_TIMEZONE = "setTIMEZONE";
+    // public static final String TYPE_SET_TIMEZONE = "setTIMEZONE";
     // public static final String TYPE_FACTORY_RESET = "factoryReset";
     public static final String TYPE_OUTPUT_CONTROL = "outputControl";
 
