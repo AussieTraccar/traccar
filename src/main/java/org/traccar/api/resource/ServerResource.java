@@ -162,6 +162,14 @@ public class ServerResource extends BaseResource {
         return Response.ok().build();
     }
 
+    @Path("gc")
+    @GET
+    public Response gc() throws StorageException {
+        permissionsService.checkAdmin(getUserId());
+        System.gc();
+        return Response.ok().build();
+    }
+
     @Path("cache")
     @GET
     public String cache() throws StorageException {
