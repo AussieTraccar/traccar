@@ -76,18 +76,22 @@ public class Gt06ProtocolEncoder extends BaseProtocolEncoder {
         String model = getDeviceModel(command.getDeviceId());
 
         switch (command.getType()) {
+            case Command.TYPE_ALARM_ARM:
+                return encodeContent(command.getDeviceId(), "SenAlm,ON#");
+            case Command.TYPE_ALARM_DISARM:
+                return encodeContent(command.getDeviceId(), "SenAlm,OFF#");
             case Command.TYPE_OUTPUT_CONTROL:
                 return encodeContent(command.getDeviceId(), "Find#");
             case Command.TYPE_REBOOT_DEVICE:
                 return encodeContent(command.getDeviceId(), "Reset#");
             case Command.TYPE_ENGINE_STOP:
                 if (alternative) {
-                    return encodeContent(command.getDeviceId(), "Relay,1," + password + "#");
+                    return encodeContent(command.getDeviceId(), "Relay2,ON," + password + "#");
                 } else {
-                    return encodeContent(command.getDeviceId(), "Relay,1#");
+                    return encodeContent(command.getDeviceId(), "Relay2,ON#");
                 }
             case Command.TYPE_ENGINE_RESUME:
-                return encodeContent(command.getDeviceId(), "Relay,0#");
+                return encodeContent(command.getDeviceId(), "Relay2,OFF#");
             case Command.TYPE_CUSTOM:
                 return encodeContent(command.getDeviceId(), command.getString(Command.KEY_DATA));
             default:

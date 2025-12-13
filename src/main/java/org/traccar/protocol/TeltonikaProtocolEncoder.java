@@ -52,14 +52,14 @@ public class TeltonikaProtocolEncoder extends BaseProtocolEncoder {
     @Override
     protected Object encodeCommand(Command command) {
         return switch (command.getType()) {
-            case Command.TYPE_ENGINE_STOP -> encodeContent("setdigout 1\r\n".getBytes(StandardCharsets.US_ASCII));
-            case Command.TYPE_ENGINE_RESUME -> encodeContent("setdigout 0\r\n".getBytes(StandardCharsets.US_ASCII));
+            case Command.TYPE_ENGINE_STOP -> encodeContent("setdigout 1".getBytes(StandardCharsets.US_ASCII));
+            case Command.TYPE_ENGINE_RESUME -> encodeContent("setdigout 0".getBytes(StandardCharsets.US_ASCII));
             case Command.TYPE_CUSTOM -> {
                 String data = command.getString(Command.KEY_DATA);
                 if (data.matches("(\\p{XDigit}{2})+")) {
                     yield encodeContent(DataConverter.parseHex(data));
                 } else {
-                    yield encodeContent((data + "\r\n").getBytes(StandardCharsets.US_ASCII));
+                    yield encodeContent(data.getBytes(StandardCharsets.US_ASCII));
                 }
             }
             default -> null;

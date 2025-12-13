@@ -703,10 +703,18 @@ public class HuabaoProtocolDecoder extends BaseProtocolDecoder {
                     position.set(Position.KEY_BATTERY, buf.readUnsignedShort() / 100.0);
                     break;
                 case 0xE4:
-                    if (buf.readUnsignedByte() == 0) {
-                        position.set(Position.KEY_CHARGE, true);
+                    if ("VL502".equals(model)) {
+                        position.set(Position.KEY_CHARGE, buf.readUnsignedByte() != 0);
+                        buf.readUnsignedByte();
+                        position.set(Position.KEY_BATTERY, buf.readUnsignedShort() / 100.0);
+                        buf.readUnsignedByte();
+                        position.set(Position.KEY_POWER, buf.readUnsignedShort() / 100.0);
+                    } else {
+                        if (buf.readUnsignedByte() == 0) {
+                            position.set(Position.KEY_CHARGE, true);
+                        }
+                        position.set(Position.KEY_BATTERY_LEVEL, buf.readUnsignedByte());
                     }
-                    position.set(Position.KEY_BATTERY_LEVEL, buf.readUnsignedByte());
                     break;
                 case 0xE6:
                     while (buf.readerIndex() < endIndex) {

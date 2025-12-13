@@ -29,9 +29,6 @@ public class Jt600Protocol extends BaseProtocol {
     @Inject
     public Jt600Protocol(Config config) {
         setSupportedDataCommands(
-                Command.TYPE_ENGINE_RESUME,
-                Command.TYPE_ENGINE_STOP,
-                Command.TYPE_SET_TIMEZONE,
                 Command.TYPE_REBOOT_DEVICE);
         addServer(new TrackerServer(config, getName(), false) {
             @Override

@@ -29,12 +29,7 @@ public class HuabaoProtocol extends BaseProtocol {
     public HuabaoProtocol(Config config) {
         setSupportedDataCommands(
                 Command.TYPE_CUSTOM,
-                Command.TYPE_REBOOT_DEVICE,
-                Command.TYPE_POSITION_PERIODIC,
-                Command.TYPE_ALARM_ARM,
-                Command.TYPE_ALARM_DISARM,
-                Command.TYPE_ENGINE_STOP,
-                Command.TYPE_ENGINE_RESUME);
+                Command.TYPE_REBOOT_DEVICE);
         addServer(new TrackerServer(config, getName(), false) {
             @Override
             protected void addProtocolHandlers(PipelineBuilder pipeline, Config config) {
