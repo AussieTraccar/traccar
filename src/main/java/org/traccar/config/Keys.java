@@ -84,27 +84,12 @@ public final class Keys {
             List.of(KeyType.CONFIG));
 
     /**
-     * Custom message length. Currently used only by H2 protocol for specifying binary message length.
-     */
-    public static final ConfigSuffix<Integer> PROTOCOL_MESSAGE_LENGTH = new IntegerConfigSuffix(
-            ".messageLength",
-            List.of(KeyType.CONFIG));
-
-    /**
      * Enable extended functionality for the protocol. The reason it's disabled by default is that not all devices
      * support it.
      */
     public static final ConfigSuffix<Boolean> PROTOCOL_EXTENDED = new BooleanConfigSuffix(
             ".extended",
             List.of(KeyType.CONFIG));
-
-    /**
-     * Indicates whether server acknowledgement is required. Only applicable for some protocols.
-     */
-    public static final ConfigSuffix<Boolean> PROTOCOL_ACK = new BooleanConfigSuffix(
-            ".ack",
-            List.of(KeyType.CONFIG, KeyType.DEVICE),
-            false);
 
     /**
      * Some devices require server address confirmation. Use this parameter to configure correct public address.
