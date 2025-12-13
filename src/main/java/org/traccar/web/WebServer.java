@@ -139,7 +139,7 @@ public class WebServer implements LifecycleObject {
     }
 
     private void initWebApp(ServletContextHandler servletHandler) {
-        ServletHolder servletHolder = new ServletHolder(new DefaultOverrideServlet(config));
+        ServletHolder servletHolder = new ServletHolder(DefaultServlet.class);
         servletHolder.setInitParameter("resourceBase", new File(config.getString(Keys.WEB_PATH)).getAbsolutePath());
         servletHolder.setInitParameter("dirAllowed", "false");
         if (config.getBoolean(Keys.WEB_DEBUG)) {
@@ -149,7 +149,7 @@ public class WebServer implements LifecycleObject {
             if (cache != null && !cache.isEmpty()) {
                 servletHolder.setInitParameter("cacheControl", cache);
             }
-            servletHandler.setWelcomeFiles(new String[] {"release.html", "index.html"});
+            servletHandler.setWelcomeFiles(new String[] {"index.html"});
         }
         servletHandler.addServlet(servletHolder, "/*");
     }

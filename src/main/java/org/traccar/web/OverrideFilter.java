@@ -46,8 +46,31 @@ public class OverrideFilter implements Filter {
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
             throws IOException, ServletException {
 
-        if (((HttpServletRequest) request).getServletPath().startsWith("/api")) {
+        HttpServletRequest httpRequest = (HttpServletRequest) request;
+
+        if (!("GET".equals(httpRequest.getMethod()) || "HEAD".equals(httpRequest.getMethod()))) {
             chain.doFilter(request, response);
+            return;
+        }
+
+        String uri = httpRequest.getRequestURI();
+        if (uri.startsWith("/api/") || uri.startsWith("/console/")) {
+            chain.doFilter(request, response);
+            return;
+        }
+
+        String path = uri.substring(httpRequest.getContextPath().length());
+        if (path.isEmpty()) {
+            path = "/";
+        }
+
+        String accept = httpRequest.getHeader("Accept");
+        boolean acceptHtml = accept != null && accept.contains("text/html");
+        String last = path.endsWith("/") ? "" : path.substring(path.lastIndexOf('/') + 1);
+        boolean appRoute = path.endsWith("/") || !last.contains(".");
+
+        if (acceptHtml && appRoute) {
+            request.getRequestDispatcher("/index.html").forward(request, response);
             return;
         }
 
@@ -67,14 +90,16 @@ public class OverrideFilter implements Filter {
                     throw new RuntimeException(e);
                 }
 
-                String title = server.getString("title", "Traccar");
-                String description = server.getString("description", "Traccar GPS Tracking System");
-                String colorPrimary = server.getString("colorPrimary", "#1a237e");
+                String title = server.getString("title", "myTraccar");
+                String description = server.getString("description", "myTraccar GPS Tracking System");
+                String colorPrimary = server.getString("colorPrimary", "#0c609c");
+                String colorSecondary = server.getString("colorSecondary", "#0c609c");
 
                 String alteredContent = new String(wrappedResponse.getCapture(), StandardCharsets.UTF_8)
                         .replace("${title}", title)
                         .replace("${description}", description)
-                        .replace("${colorPrimary}", colorPrimary);
+                        .replace("${colorPrimary}", colorPrimary)
+                        .replace("${colorSecondary}", colorSecondary);
 
                 byte[] data = alteredContent.getBytes(StandardCharsets.UTF_8);
                 response.setContentLength(data.length);
