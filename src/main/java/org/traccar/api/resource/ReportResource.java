@@ -93,7 +93,8 @@ public class ReportResource extends SimpleObjectResource<Report> {
 
     private Response executeReport(long userId, boolean mail, ReportExecutor executor) {
         if (mail) {
-            reportMailer.sendAsync(userId, executor);
+            String url = "";
+            reportMailer.sendAsync(userId, url, executor);
             return Response.noContent().build();
         } else {
             StreamingOutput stream = output -> {

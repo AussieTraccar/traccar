@@ -20,6 +20,7 @@ import org.slf4j.LoggerFactory;
 import org.traccar.api.security.PermissionsService;
 import org.traccar.mail.MailManager;
 import org.traccar.model.User;
+import org.traccar.notification.TextTemplateFormatter;
 import org.traccar.storage.StorageException;
 
 import jakarta.activation.DataHandler;
@@ -36,26 +37,37 @@ public class ReportMailer {
 
     private final PermissionsService permissionsService;
     private final MailManager mailManager;
+    private final TextTemplateFormatter textTemplateFormatter;
 
     @Inject
-    public ReportMailer(PermissionsService permissionsService, MailManager mailManager) {
+    public ReportMailer(
+            PermissionsService permissionsService, MailManager mailManager,
+            TextTemplateFormatter textTemplateFormatter) {
         this.permissionsService = permissionsService;
         this.mailManager = mailManager;
+        this.textTemplateFormatter = textTemplateFormatter;
     }
 
-    public void sendAsync(long userId, ReportExecutor executor) {
+    public void sendAsync(long userId, String url, ReportExecutor executor) {
         new Thread(() -> {
             try {
                 var stream = new ByteArrayOutputStream();
                 executor.execute(stream);
 
                 MimeBodyPart attachment = new MimeBodyPart();
-                attachment.setFileName("report.xlsx");
+                if (url.isEmpty()) {
+                    attachment.setFileName("manual-report.xlsx");
+                } else {
+                    attachment.setFileName("scheduled-report.xlsx");
+                }
                 attachment.setDataHandler(new DataHandler(new ByteArrayDataSource(
                         stream.toByteArray(), "application/octet-stream")));
 
                 User user = permissionsService.getUser(userId);
-                mailManager.sendMessage(user, false, "Report", "The report is in the attachment.", attachment);
+                var velocityContext = textTemplateFormatter.prepareContext(permissionsService.getServer(), user);
+                velocityContext.put("reportUrl", url);
+                var fullMessage = textTemplateFormatter.formatMessage(velocityContext, "scheduledReport", false);
+                mailManager.sendMessage(user, false, fullMessage.subject(), fullMessage.body(), attachment);
             } catch (StorageException | IOException | MessagingException e) {
                 LOGGER.warn("Email report failed", e);
             }

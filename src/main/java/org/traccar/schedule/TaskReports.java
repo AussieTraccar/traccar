@@ -25,6 +25,8 @@ import org.slf4j.LoggerFactory;
 import org.traccar.helper.DateUtil;
 import org.traccar.helper.LogAction;
 import org.traccar.model.*;
+import org.traccar.model.Calendar;
+import org.traccar.reports.*;
 import org.traccar.reports.common.ReportMailer;
 import org.traccar.storage.Storage;
 import org.traccar.storage.StorageException;
@@ -35,10 +37,7 @@ import org.traccar.storage.query.Request;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -129,7 +128,34 @@ public class TaskReports extends SingleScheduleTask {
         ReportMailer reportMailer = injector.getInstance(ReportMailer.class);
         for (User user : users) {
             actionLogger.report(null, user.getId(), true, report.getType(), from, to, deviceIds, groupIds);
-            reportMailer.sendAsync(user, url.toString());
+            switch (report.getType()) {
+                case "events" -> {
+                    var eventsReportProvider = injector.getInstance(EventsReportProvider.class);
+                    reportMailer.sendAsync(user.getId(), url.toString(), stream -> eventsReportProvider.getExcel(
+                            stream, user.getId(), deviceIds, groupIds, List.of(), List.of(), from, to));
+                }
+                case "route" -> {
+                    var routeReportProvider = injector.getInstance(RouteReportProvider.class);
+                    reportMailer.sendAsync(user.getId(), url.toString(), stream -> routeReportProvider.getExcel(
+                            stream, user.getId(), deviceIds, groupIds, from, to));
+                }
+                case "summary" -> {
+                    var summaryReportProvider = injector.getInstance(SummaryReportProvider.class);
+                    reportMailer.sendAsync(user.getId(), url.toString(), stream -> summaryReportProvider.getExcel(
+                            stream, user.getId(), deviceIds, groupIds, from, to, false));
+                }
+                case "trips" -> {
+                    var tripsReportProvider = injector.getInstance(TripsReportProvider.class);
+                    reportMailer.sendAsync(user.getId(), url.toString(), stream -> tripsReportProvider.getExcel(
+                            stream, user.getId(), deviceIds, groupIds, from, to));
+                }
+                case "stops" -> {
+                    var stopsReportProvider = injector.getInstance(StopsReportProvider.class);
+                    reportMailer.sendAsync(user.getId(), url.toString(), stream -> stopsReportProvider.getExcel(
+                            stream, user.getId(), deviceIds, groupIds, from, to));
+                }
+                default -> LOGGER.warn("Unsupported report type {}", report.getType());
+            }
         }
     }
 
