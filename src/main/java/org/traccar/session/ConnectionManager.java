@@ -206,7 +206,7 @@ public class ConnectionManager implements BroadcastInterface {
     }
 
     public void deviceUnknown(long deviceId) {
-        updateDevice(deviceId, Device.STATUS_UNKNOWN, null);
+        updateDevice(deviceId, Device.STATUS_OFFLINE, null); // changed from STATUS_UNKNOWN to STATUS_OFFLINE
         removeDeviceSession(deviceId);
     }
 
@@ -243,17 +243,17 @@ public class ConnectionManager implements BroadcastInterface {
             String eventType;
             Map<Event, Position> events = new HashMap<>();
 
-            eventType = switch (status) {
-                case Device.STATUS_ONLINE -> Event.TYPE_DEVICE_ONLINE;
-                case Device.STATUS_UNKNOWN -> Event.TYPE_DEVICE_UNKNOWN;
-                default -> Event.TYPE_DEVICE_OFFLINE;
-            };
+//            eventType = switch (status) {
+//                case Device.STATUS_ONLINE -> Event.TYPE_DEVICE_ONLINE;
+//                case Device.STATUS_UNKNOWN -> Event.TYPE_DEVICE_UNKNOWN;
+//                default -> Event.TYPE_DEVICE_OFFLINE;
+//            };
 
-            // if (status.equals(Device.STATUS_ONLINE)) {
-            //    eventType = Event.TYPE_DEVICE_ONLINE;
-            // } else {
-            //    eventType = Event.TYPE_DEVICE_OFFLINE;
-            // }
+             if (status.equals(Device.STATUS_ONLINE)) {
+                eventType = Event.TYPE_DEVICE_ONLINE;
+             } else {
+                eventType = Event.TYPE_DEVICE_OFFLINE;
+             }
 
             events.put(new Event(eventType, deviceId), null);
             notificationManager.updateEvents(events);
