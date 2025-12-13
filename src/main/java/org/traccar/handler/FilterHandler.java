@@ -49,6 +49,8 @@ public class FilterHandler extends BasePositionHandler {
     private final boolean filterApproximate;
     private final int filterAccuracy;
     private final boolean filterStatic;
+    private final boolean filterStaticMove;
+    private final double filterStaticThreshold;
     private final int filterDistance;
     private final int filterMaxSpeed;
     private final long filterMinPeriod;
@@ -74,6 +76,8 @@ public class FilterHandler extends BasePositionHandler {
         filterAccuracy = config.getInteger(Keys.FILTER_ACCURACY);
         filterApproximate = config.getBoolean(Keys.FILTER_APPROXIMATE);
         filterStatic = config.getBoolean(Keys.FILTER_STATIC);
+        filterStaticMove = config.getBoolean(Keys.FILTER_STATIC_MOVE);
+        filterStaticThreshold = config.getDouble(Keys.EVENT_MOTION_SPEED_THRESHOLD);
         filterDistance = config.getInteger(Keys.FILTER_DISTANCE);
         filterMaxSpeed = config.getInteger(Keys.FILTER_MAX_SPEED);
         filterMinPeriod = config.getInteger(Keys.FILTER_MIN_PERIOD) * 1000L;
@@ -138,13 +142,62 @@ public class FilterHandler extends BasePositionHandler {
         return filterApproximate && position.getBoolean(Position.KEY_APPROXIMATE);
     }
 
-    private boolean filterStatic(Position position) {
-        return filterStatic && position.getSpeed() == 0.0;
+    private boolean filterStatic(Position position, Position last) {
+        long deviceId = position.getDeviceId();
+        Device device = cacheManager.getObject(Device.class, deviceId);
+
+        if (filterStatic && !device.getMotionState() && position.getSpeed() == 0.0 && last.getSpeed() == 0.0) {
+            String string = AttributeUtil.lookup(cacheManager, Keys.FILTER_STATIC_PROTOCOLS, position.getDeviceId());
+            if (!string.isEmpty()) {
+                for (String protocol : string.split("[ ,]")) {
+                    if (position.getProtocol().equals(protocol)) {
+                        LOGGER.info("Position Static with protocol {} from device: {}", protocol, device.getUniqueId());
+                        return true;
+                    }
+                }
+            } else {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean filterStaticMove(Position position, Position last) {
+        long deviceId = position.getDeviceId();
+        Device device = cacheManager.getObject(Device.class, deviceId);
+
+        //double speed = position.getSpeed();
+        //double distance = position.getDouble(Position.KEY_DISTANCE);
+        //double time = position.getFixTime().getTime() - last.getFixTime().getTime();
+        //if (time > 0 && speed > 0 && (distance > ((speed / 3600 * 1000) /
+        // ) * time)) {
+            //long calculated = Math.round(((speed / 3600 * 1000) / 2) * time);
+            //LOGGER.info("Position filtered by STATIC JUMP from device: {}: ({}/{}/{}/{})", device.getUniqueId(), distance, speed, time, calculated);
+        //}
+
+        boolean ignition = position.getAttributes().get("ignition") != null && (boolean) position.getAttributes().get("ignition");
+        if (filterStaticMove && position.getBoolean(Position.KEY_IGNITION)) {
+            LOGGER.info("Position NOT filtered by StaticMovement as ignition detected on device: {}", device.getUniqueId());
+            return false;
+        }
+        if (filterStaticMove && position.getAccuracy() > 0.0) {
+            return device.getMotionState() && position.getSpeed() < filterStaticThreshold || !device.getMotionState() && position.getSpeed() > 0.0;
+        }
+        return false;
     }
 
     private boolean filterDistance(Position position, Position last) {
+        long deviceId = position.getDeviceId();
+        Device device = cacheManager.getObject(Device.class, deviceId);
+
+        int satellitesNow = position.getInteger(Position.KEY_SATELLITES);
+        int satellitesLast = last.getInteger(Position.KEY_SATELLITES);
+
         if (filterDistance != 0 && last != null) {
-            return position.getDouble(Position.KEY_DISTANCE) < filterDistance;
+            if (position.getAttributes().get("sat") != null && last.getAttributes().get("sat") != null) {
+                LOGGER.info("Position has satellites ({}->{}) on device: {}", satellitesLast, satellitesNow, device.getUniqueId());
+            }
+            return !device.getMotionState() && position.getSpeed() < filterStaticThreshold && position.getDouble(Position.KEY_DISTANCE) < filterDistance;
         }
         return false;
     }
@@ -183,11 +236,19 @@ public class FilterHandler extends BasePositionHandler {
         return false;
     }
 
-    private boolean skipAttributes(Position position) {
+    private boolean skipAttributes(Position position, Position last) {
         if (skipAttributes) {
+            long deviceId = position.getDeviceId();
+            Device device = cacheManager.getObject(Device.class, deviceId);
             String string = AttributeUtil.lookup(cacheManager, Keys.FILTER_SKIP_ATTRIBUTES, position.getDeviceId());
             for (String attribute : string.split("[ ,]")) {
-                if (position.hasAttribute(attribute)) {
+                String current = position.getAttributes().get(attribute) != null ? position.getAttributes().get(attribute).toString().trim() : "empty";
+                String previous = last.getAttributes().get(attribute) != null ? last.getAttributes().get(attribute).toString().trim() : "empty";
+                //if ((position.getAttributes().get(attribute) != last.getAttributes().get(attribute)) && position.getAttributes().get(attribute) != null) {
+                if ((!current.equals(previous)) && position.getAttributes().get(attribute) != null) {
+                    // LOGGER.info("Position attribute {} updated from device: {}", attribute, device.getUniqueId());
+                    LOGGER.info("Position attribute {} updated from device: {}, ({}->{})", attribute, device.getUniqueId(), previous, current);
+
                     return true;
                 }
             }
@@ -224,9 +285,9 @@ public class FilterHandler extends BasePositionHandler {
 
         // filter out excessive data
         long deviceId = position.getDeviceId();
+        Position preceding = null;
         if (filterDuplicate || filterStatic
                 || filterDistance > 0 || filterMaxSpeed > 0 || filterMinPeriod > 0 || filterDailyLimit > 0) {
-            Position preceding;
             if (filterRelative) {
                 try {
                     Date newFixTime = position.getFixTime();
@@ -238,14 +299,17 @@ public class FilterHandler extends BasePositionHandler {
             } else {
                 preceding = cacheManager.getPosition(deviceId);
             }
-            if (filterDuplicate(position, preceding) && !skipLimit(position, preceding) && !skipAttributes(position)) {
+            if (filterDuplicate(position, preceding) && !skipLimit(position, preceding)) {
                 filterType.append("Duplicate ");
             }
-            if (filterStatic(position) && !skipLimit(position, preceding) && !skipAttributes(position)) {
+            if (filterDistance(position, preceding) && !skipLimit(position, preceding) && !filterStatic(position, preceding)) {
+                filterType.append("Distance ");
+            }
+            if (filterStatic(position, preceding) && !skipLimit(position, preceding)) {
                 filterType.append("Static ");
             }
-            if (filterDistance(position, preceding) && !skipLimit(position, preceding) && !skipAttributes(position)) {
-                filterType.append("Distance ");
+            if (filterStaticMove(position, preceding) && !skipLimit(position, preceding)) {
+                filterType.append("StaticMovement ");
             }
             if (filterMaxSpeed(position, preceding)) {
                 filterType.append("MaxSpeed ");
@@ -267,10 +331,15 @@ public class FilterHandler extends BasePositionHandler {
         }
 
         if (!filterType.isEmpty()) {
-            LOGGER.info("Position filtered by {}filters from device: {}", filterType, device.getUniqueId());
-            return true;
+            if (skipAttributes(position, preceding) && (!filterMaxSpeed(position, preceding) || !filterMinPeriod(position, preceding) || !filterDailyLimit(position, preceding) )) {
+                position.setLatitude(cacheManager.getPosition(deviceId).getLatitude());
+                position.setLongitude(cacheManager.getPosition(deviceId).getLongitude());
+                LOGGER.info("Position NOT filtered by {}filters from device: {}", filterType, device.getUniqueId());
+            } else {
+                LOGGER.info("Position filtered by {}filters from device: {}", filterType, device.getUniqueId());
+                return true;
+            }
         }
-
         return false;
     }
 

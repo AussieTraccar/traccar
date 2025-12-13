@@ -1257,6 +1257,23 @@ public final class Keys {
             false);
 
     /**
+     * Filter static positions based on protocol.
+     * If position contains any protocol mentioned in "filter.static.protocol" config key, protocol gets filtered out.
+     */
+    public static final ConfigKey<String> FILTER_STATIC_PROTOCOLS = new StringConfigKey(
+            "filter.static.protocols",
+            List.of(KeyType.CONFIG),
+            "");
+
+    /**
+     * Filter positions with determined static movement gets filtered out.
+     */
+    public static final ConfigKey<Boolean> FILTER_STATIC_MOVE = new BooleanConfigKey(
+            "filter.static.move",
+            List.of(KeyType.CONFIG),
+            false);
+
+    /**
      * Filter records by distance. The values are specified in metres. If the new position is less far than this value
      * from the last one it gets filtered out.
      */
