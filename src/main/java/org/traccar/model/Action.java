@@ -93,4 +93,15 @@ public class Action extends ExtendedModel {
     public void setUserEmail(String userEmail) {
         this.userEmail = userEmail;
     }
+
+    private String userName;
+
+    @QueryIgnore
+    public String getUserName() {
+        return userName;
+    }
+
+    public void setUserName(String userName) {
+        this.userName = userName;
+    }
 }

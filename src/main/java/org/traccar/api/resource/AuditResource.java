@@ -52,12 +52,20 @@ public class AuditResource extends BaseResource {
                     .collect(Collectors.toMap(User::getId, User::getEmail));
         }
 
+        Map<Long, String> userNameMap;
+        try (var stream = storage.getObjectsStream(User.class, new Request(new Columns.All()))) {
+            userNameMap = stream
+                    .filter(user -> user.getName() != null)
+                    .collect(Collectors.toMap(User::getId, User::getName));
+        }
+
         return storage.getObjectsStream(Action.class, new Request(
                         new Columns.All(),
                         new Condition.Between("actionTime", from, to),
                         new Order("actionTime")))
                 .map(action -> {
                     action.setUserEmail(userEmailMap.get(action.getUserId()));
+                    action.setUserName(userNameMap.get(action.getUserId()));
                     return action;
                 });
     }
