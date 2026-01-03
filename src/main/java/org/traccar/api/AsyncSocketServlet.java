@@ -68,7 +68,7 @@ public class AsyncSocketServlet extends JettyWebSocketServlet {
                 } catch (StorageException | GeneralSecurityException | IOException e) {
                     throw new RuntimeException(e);
                 }
-            } else if (req.getSession() != null) {
+            } else if (SessionHelper.isSessionOriginValid(req.getHttpServletRequest())) {
                 userId = (Long) ((HttpSession) req.getSession()).getAttribute(SessionHelper.USER_ID_KEY);
             }
             if (userId != null) {

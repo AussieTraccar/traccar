@@ -61,9 +61,9 @@ public class MediaFilter implements Filter {
 
         HttpServletResponse httpResponse = (HttpServletResponse) response;
         try {
-            HttpSession session = ((HttpServletRequest) request).getSession(false);
             Long userId = null;
-            if (session != null) {
+            if (SessionHelper.isSessionOriginValid((HttpServletRequest) request)) {
+                HttpSession session = ((HttpServletRequest) request).getSession(false);
                 userId = (Long) session.getAttribute(SessionHelper.USER_ID_KEY);
                 if (userId != null) {
                     statisticsManager.registerRequest(userId);
