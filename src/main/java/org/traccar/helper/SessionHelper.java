@@ -15,15 +15,18 @@
  */
 package org.traccar.helper;
 
+import io.netty.handler.codec.http.HttpHeaderNames;
 import org.traccar.model.User;
 import java.util.Date;
 
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 
 public final class SessionHelper {
 
     public static final String USER_ID_KEY = "userId";
     public static final String EXPIRATION_KEY = "expiration";
+    public static final String ORIGIN_KEY = "origin";
 
     private SessionHelper() {
     }
@@ -37,6 +40,19 @@ public final class SessionHelper {
         }
 
         actionLogger.login(request, user.getId());
+    }
+
+    public static boolean isSessionOriginValid(HttpServletRequest request) {
+        HttpSession session = request.getSession(false);
+        if (session == null) {
+            return false;
+        }
+        String sessionOrigin = (String) session.getAttribute(ORIGIN_KEY);
+        if (sessionOrigin == null) {
+            return true;
+        }
+        String requestOrigin = request.getHeader(HttpHeaderNames.ORIGIN.toString());
+        return requestOrigin == null || sessionOrigin.equals(requestOrigin);
     }
 
 }
