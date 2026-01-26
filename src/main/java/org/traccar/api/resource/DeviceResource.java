@@ -66,7 +66,7 @@ import java.util.List;
 public class DeviceResource extends BaseObjectResource<Device> {
 
     private static final int DEFAULT_BUFFER_SIZE = 8192;
-    private static final int IMAGE_SIZE_LIMIT = 500000;
+    private static final int IMAGE_SIZE_LIMIT = 50000;
 
     @Inject
     private Config config;
