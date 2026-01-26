@@ -107,12 +107,28 @@ public final class Keys {
             List.of(KeyType.CONFIG, KeyType.DEVICE));
 
     /**
+     * Minimum speed threshold. Values are specified in km/h.
+     */
+    public static final ConfigKey<Double> GT06_MIN_SPEED = new DoubleConfigKey(
+            "gt06.minSpeed",
+            List.of(KeyType.CONFIG),
+            0.0);
+
+    /**
      * Minimum accuracy to include. If the value is lower, it will be set to zero.
      */
     public static final ConfigKey<Double> OSMAND_MIN_ACCURACY = new DoubleConfigKey(
             "osmand.minAccuracy",
             List.of(KeyType.CONFIG),
             10.0);
+
+    /**
+     * Minimum speed threshold. Values are specified in km/h.
+     */
+    public static final ConfigKey<Double> OSMAND_MIN_SPEED = new DoubleConfigKey(
+            "osmand.minSpeed",
+            List.of(KeyType.CONFIG),
+            0.0);
 
     /**
      * Use alternative format for the protocol of commands.
