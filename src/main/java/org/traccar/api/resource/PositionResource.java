@@ -115,7 +115,7 @@ public class PositionResource extends BaseResource {
 
         var conditions = new LinkedList<Condition>();
         conditions.add(new Condition.Equals("deviceId", deviceId));
-        conditions.add(new Condition.Between("serverTime", "from", from, "to", to));
+        conditions.add(new Condition.Between("fixTime", "from", from, "to", to));
         storage.removeObject(Position.class, new Request(Condition.merge(conditions)));
 
         return Response.status(Response.Status.NO_CONTENT).build();
