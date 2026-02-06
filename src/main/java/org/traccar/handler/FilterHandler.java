@@ -48,6 +48,8 @@ public class FilterHandler extends BasePositionHandler {
     private final long filterPast;
     private final boolean filterApproximate;
     private final int filterAccuracy;
+    private final double filterGt06Speed;
+    private final double filterOsmandSpeed;
     private final boolean filterStatic;
     private final boolean filterStaticMove;
     private final double filterStaticThreshold;
@@ -74,6 +76,8 @@ public class FilterHandler extends BasePositionHandler {
         filterFuture = config.getLong(Keys.FILTER_FUTURE) * 1000;
         filterPast = config.getLong(Keys.FILTER_PAST) * 1000;
         filterAccuracy = config.getInteger(Keys.FILTER_ACCURACY);
+        filterGt06Speed = config.getDouble(Keys.GT06_MIN_SPEED);
+        filterOsmandSpeed = config.getDouble(Keys.OSMAND_MIN_SPEED);
         filterApproximate = config.getBoolean(Keys.FILTER_APPROXIMATE);
         filterStatic = config.getBoolean(Keys.FILTER_STATIC);
         filterStaticMove = config.getBoolean(Keys.FILTER_STATIC_MOVE);
@@ -135,28 +139,32 @@ public class FilterHandler extends BasePositionHandler {
     }
 
     private boolean filterAccuracy(Position position) {
-        return filterAccuracy != 0 && position.getAccuracy() > filterAccuracy;
+        return filterAccuracy != 0 && position.getAccuracy() >= filterAccuracy;
     }
 
     private boolean filterApproximate(Position position) {
         return filterApproximate && position.getBoolean(Position.KEY_APPROXIMATE);
     }
 
-    private boolean filterStatic(Position position, Position last) {
+    private boolean filterStatic(Position position, Position last, boolean log) {
         long deviceId = position.getDeviceId();
         Device device = cacheManager.getObject(Device.class, deviceId);
 
-        if (filterStatic && !device.getMotionState() && position.getSpeed() == 0.0 && last.getSpeed() == 0.0) {
-            String string = AttributeUtil.lookup(cacheManager, Keys.FILTER_STATIC_PROTOCOLS, position.getDeviceId());
-            if (!string.isEmpty()) {
-                for (String protocol : string.split("[ ,]")) {
-                    if (position.getProtocol().equals(protocol)) {
-                        LOGGER.info("Position Static with protocol {} from device: {}", protocol, device.getUniqueId());
-                        return true;
+        if (filterStatic && last != null) {
+            if (position.getSpeed() == 0.0 && last.getSpeed() == 0.0) {
+                String string = AttributeUtil.lookup(cacheManager, Keys.FILTER_STATIC_PROTOCOLS, position.getDeviceId());
+                if (!string.isEmpty()) {
+                    for (String protocol : string.split("[ ,]")) {
+                        if (position.getProtocol().equals(protocol)) {
+                            if (log) {
+                                LOGGER.info("Position Static with protocol {} from device: {}", protocol, device.getUniqueId());
+                            }
+                            return true;
+                        }
                     }
+                } else {
+                    return true;
                 }
-            } else {
-                return true;
             }
         }
         return false;
@@ -166,22 +174,57 @@ public class FilterHandler extends BasePositionHandler {
         long deviceId = position.getDeviceId();
         Device device = cacheManager.getObject(Device.class, deviceId);
 
-        //double speed = position.getSpeed();
-        //double distance = position.getDouble(Position.KEY_DISTANCE);
-        //double time = position.getFixTime().getTime() - last.getFixTime().getTime();
-        //if (time > 0 && speed > 0 && (distance > ((speed / 3600 * 1000) /
-        // ) * time)) {
-            //long calculated = Math.round(((speed / 3600 * 1000) / 2) * time);
-            //LOGGER.info("Position filtered by STATIC JUMP from device: {}: ({}/{}/{}/{})", device.getUniqueId(), distance, speed, time, calculated);
-        //}
+        if (filterStaticMove && last != null) {
+            long speed = Math.round((position.getSpeed() * 0.2777777778));
+            long distance = Math.round(position.getDouble(Position.KEY_DISTANCE));
+            long time = position.getFixTime().getTime() - last.getFixTime().getTime();
+            long calculatedKn = Math.round(UnitsConverter.knotsFromMps((double) distance / ((float) time / 1000)));
+            long calculatedMps = Math.round(((float) distance / ((float) time / 1000)));
+            if (distance != 0 && speed != 0) {
+                LOGGER.info("Position filtered by StaticMovement-calcJump from device: {} (d:{} t:{} s:{}mps c:{}mps->{}kn)", device.getUniqueId(), distance, time, speed, calculatedMps, calculatedKn);
+            }
 
-        boolean ignition = position.getAttributes().get("ignition") != null && (boolean) position.getAttributes().get("ignition");
-        if (filterStaticMove && position.getBoolean(Position.KEY_IGNITION)) {
-            LOGGER.info("Position NOT filtered by StaticMovement as ignition detected on device: {}", device.getUniqueId());
-            return false;
-        }
-        if (filterStaticMove && position.getAccuracy() > 0.0) {
-            return device.getMotionState() && position.getSpeed() < filterStaticThreshold || !device.getMotionState() && position.getSpeed() > 0.0;
+//            boolean motionDevice = device.getMotionState();
+//            boolean motionState = (position.getAttributes().get("motion") != null && (boolean) position.getAttributes().get("motion"));
+//            if (motionDevice != motionState) {
+//                LOGGER.info("Position filtered by StaticMovement-deviceState ({}/{}) from device: {}", motionDevice, motionState, device.getUniqueId());
+//            }
+
+            StringBuilder filterStaticType = new StringBuilder();
+//            filterStaticType.setLength(0);
+
+            if (position.getBoolean(Position.KEY_IGNITION) || last.getBoolean(Position.KEY_IGNITION)) {
+                LOGGER.info("Position NOT filtered by StaticMovement-onIgnition from device: {}", device.getUniqueId());
+                return false;
+            }
+            // filter all devices in motion state and zero speed or distance values
+            if (device.getMotionState()) {
+                if (position.getSpeed() == 0.0 && distance == 0) {
+                    filterStaticType.append("-noSpeed");
+                } else {
+                    if (position.getProtocol().equals("gt06")) {
+                        // filter gt06 protocol devices in motion state and with minimum threshold speed value
+                        if (filterGt06Speed != 0 && (position.getSpeed() > 0.0 && position.getSpeed() < filterGt06Speed)) {
+                            filterStaticType.append("-minSpeed");
+                        }
+                    }
+                    if (position.getProtocol().equals("osmand")) {
+                        // filter osmand protocol devices in motion state and with minimum threshold speed value
+                        if (filterOsmandSpeed != 0 && (position.getSpeed() > 0.0 && position.getSpeed() < filterOsmandSpeed)) {
+                            filterStaticType.append("-minSpeed");
+                        }
+                    }
+                }
+            } else {
+                // filter all devices not in motion state and zero speed and greater than filterDistance values
+                if (position.getSpeed() == 0.0 && last.getSpeed() == 0.0 && distance > filterDistance) {
+                    filterStaticType.append("-noMotion");
+                }
+            }
+            if (!filterStaticType.isEmpty()) {
+                LOGGER.info("Position filtered by StaticMovement{} from device: {}", filterStaticType, device.getUniqueId());
+                return true;
+            }
         }
         return false;
     }
@@ -189,15 +232,17 @@ public class FilterHandler extends BasePositionHandler {
     private boolean filterDistance(Position position, Position last) {
         long deviceId = position.getDeviceId();
         Device device = cacheManager.getObject(Device.class, deviceId);
-
-        int satellitesNow = position.getInteger(Position.KEY_SATELLITES);
-        int satellitesLast = last.getInteger(Position.KEY_SATELLITES);
+        long distance = Math.round(position.getDouble(Position.KEY_DISTANCE));
 
         if (filterDistance != 0 && last != null) {
-            if (position.getAttributes().get("sat") != null && last.getAttributes().get("sat") != null) {
-                LOGGER.info("Position has satellites ({}->{}) on device: {}", satellitesLast, satellitesNow, device.getUniqueId());
+            if (position.getBoolean(Position.KEY_IGNITION) || last.getBoolean(Position.KEY_IGNITION)) {
+                // LOGGER.info("Position NOT filtered by StaticMovement-onIgnition from device: {}", device.getUniqueId());
+                return false;
             }
-            return !device.getMotionState() && position.getSpeed() < filterStaticThreshold && position.getDouble(Position.KEY_DISTANCE) < filterDistance;
+            if (position.getSpeed() < filterStaticThreshold && (distance != 0 && distance < filterDistance)) {
+                LOGGER.info("Position filtered by Distance ({}m) from device: {}", distance, device.getUniqueId());
+                return true;
+            }
         }
         return false;
     }
@@ -243,8 +288,18 @@ public class FilterHandler extends BasePositionHandler {
             String string = AttributeUtil.lookup(cacheManager, Keys.FILTER_SKIP_ATTRIBUTES, position.getDeviceId());
             for (String attribute : string.split("[ ,]")) {
                 String current = position.getAttributes().get(attribute) != null ? position.getAttributes().get(attribute).toString().trim() : "empty";
-                String previous = last.getAttributes().get(attribute) != null ? last.getAttributes().get(attribute).toString().trim() : "empty";
-                //if ((position.getAttributes().get(attribute) != last.getAttributes().get(attribute)) && position.getAttributes().get(attribute) != null) {
+                String previous = (last != null && last.getAttributes().get(attribute) != null) ? last.getAttributes().get(attribute).toString().trim() : "empty";
+
+                // trim "power" attribute to 4 characters to reduce minor power fluctuations forcing updates
+                if (attribute.equals("power")) {
+                    if (current.length() > 4) {
+                        current = current.substring(0,4);
+                    }
+                    if (previous.length() > 4) {
+                        previous = previous.substring(0,4);
+                    }
+                }
+
                 if ((!current.equals(previous)) && position.getAttributes().get(attribute) != null) {
                     // LOGGER.info("Position attribute {} updated from device: {}", attribute, device.getUniqueId());
                     LOGGER.info("Position attribute {} updated from device: {}, ({}->{})", attribute, device.getUniqueId(), previous, current);
@@ -302,10 +357,10 @@ public class FilterHandler extends BasePositionHandler {
             if (filterDuplicate(position, preceding) && !skipLimit(position, preceding)) {
                 filterType.append("Duplicate ");
             }
-            if (filterDistance(position, preceding) && !skipLimit(position, preceding) && !filterStatic(position, preceding)) {
+            if (filterDistance(position, preceding) && !skipLimit(position, preceding) && !filterDuplicate(position, preceding) && !filterStatic(position, preceding, false)) {
                 filterType.append("Distance ");
             }
-            if (filterStatic(position, preceding) && !skipLimit(position, preceding)) {
+            if (filterStatic(position, preceding, true) && !skipLimit(position, preceding)) {
                 filterType.append("Static ");
             }
             if (filterStaticMove(position, preceding) && !skipLimit(position, preceding)) {
@@ -331,7 +386,8 @@ public class FilterHandler extends BasePositionHandler {
         }
 
         if (!filterType.isEmpty()) {
-            if (skipAttributes(position, preceding) && (!filterMaxSpeed(position, preceding) || !filterMinPeriod(position, preceding) || !filterDailyLimit(position, preceding) )) {
+            // duplicate positions appear with gt06 battery updates for some reason
+            if (skipAttributes(position, preceding)  && !filterMaxSpeed(position, preceding) && !filterMinPeriod(position, preceding) && !filterDailyLimit(position, preceding)) {
                 position.setLatitude(cacheManager.getPosition(deviceId).getLatitude());
                 position.setLongitude(cacheManager.getPosition(deviceId).getLongitude());
                 LOGGER.info("Position NOT filtered by {}filters from device: {}", filterType, device.getUniqueId());
