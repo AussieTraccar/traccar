@@ -62,6 +62,11 @@ public class PositionLogger {
                         builder.append(", speed: ").append(String.format("%.1f", position.getSpeed()));
                     }
                     break;
+                case "distance":
+                    if (position.getDouble(Position.KEY_DISTANCE) > 0) {
+                        builder.append(", distance: ").append(String.format("%.1f", position.getDouble(Position.KEY_DISTANCE)));
+                    }
+                    break;
                 case "course":
                     builder.append(", course: ").append(String.format("%.1f", position.getCourse()));
                     break;
