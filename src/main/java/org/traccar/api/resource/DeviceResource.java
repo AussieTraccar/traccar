@@ -66,7 +66,7 @@ import java.util.stream.Stream;
 public class DeviceResource extends BaseObjectResource<Device> {
 
     private static final int DEFAULT_BUFFER_SIZE = 8192;
-    private static final int IMAGE_SIZE_LIMIT = 500000;
+    private static final int IMAGE_SIZE_LIMIT = 50000;
 
     @Inject
     private Config config;
@@ -193,7 +193,6 @@ public class DeviceResource extends BaseObjectResource<Device> {
             case "image/png" -> "png";
             case "image/gif" -> "gif";
             case "image/webp" -> "webp";
-            case "image/svg+xml" -> "svg";
             default -> throw new IllegalArgumentException("Unsupported image type");
         };
     }
