@@ -38,6 +38,7 @@ import org.traccar.model.Position;
 import org.traccar.model.WifiAccessPoint;
 
 import java.net.SocketAddress;
+import java.nio.Buffer;
 import java.nio.charset.StandardCharsets;
 import java.util.Calendar;
 import java.util.Date;
@@ -64,7 +65,7 @@ public class Gt06ProtocolDecoder extends BaseProtocolDecoder {
     public static final int MSG_TIME_REQUEST = 0x8A;
     public static final int MSG_INFO = 0x94;
     public static final int MSG_SERIAL = 0x9B;
-    public static final int MSG_GPS_LBS_7 = 0xA0;
+    public static final int MSG_GPS_LBS = 0xA0;
     public static final int MSG_FENCE_MULTI = 0xA4;
     public static final int MSG_LBS_ALARM = 0xA5;
 
@@ -91,7 +92,7 @@ public class Gt06ProtocolDecoder extends BaseProtocolDecoder {
 
     private boolean hasGps(int type) {
         switch (type) {
-            case MSG_GPS_LBS_7:
+            case MSG_GPS_LBS:
             case MSG_FENCE_MULTI:
                 return true;
             default:
@@ -101,7 +102,7 @@ public class Gt06ProtocolDecoder extends BaseProtocolDecoder {
 
     private boolean hasLbs(int type) {
         switch (type) {
-            case MSG_GPS_LBS_7:
+            case MSG_GPS_LBS:
             case MSG_FENCE_MULTI:
             case MSG_LBS_ALARM:
                 return true;
@@ -225,13 +226,13 @@ public class Gt06ProtocolDecoder extends BaseProtocolDecoder {
             mnc = buf.readUnsignedByte();
         }
         int lac; // 4bytes
-        if (type == MSG_LBS_ALARM || type == MSG_GPS_LBS_7) {
+        if (type == MSG_LBS_ALARM || type == MSG_GPS_LBS) {
             lac = buf.readInt();
         } else {
             lac = buf.readUnsignedShort();
         }
         long cid; // 8bytes
-        if (type == MSG_LBS_ALARM || type == MSG_GPS_LBS_7) {
+        if (type == MSG_LBS_ALARM || type == MSG_GPS_LBS) {
             cid = buf.readLong();
         } else {
             cid = buf.readUnsignedMedium();
@@ -239,8 +240,18 @@ public class Gt06ProtocolDecoder extends BaseProtocolDecoder {
 
         position.setNetwork(new Network(CellTower.from(BitUtil.to(mcc, 15), mnc, lac, cid)));
 
-        if (length > 9) {
-            buf.skipBytes(length - 9);
+        if (type == MSG_GPS_LBS) {
+            position.set(Position.KEY_IGNITION, buf.readUnsignedByte() > 0);
+            int upload = buf.readUnsignedByte();
+            position.set("uploadType", upload);
+            if (upload == 0x08) {
+                position.addAlarm(Position.ALARM_POWER_ON);
+            }
+            position.set("realtime", (buf.readUnsignedByte() <= 0));
+        } else {
+            if (length > 9) {
+                buf.skipBytes(length - 9);
+            }
         }
 
         return true;
@@ -254,6 +265,7 @@ public class Gt06ProtocolDecoder extends BaseProtocolDecoder {
         position.set(Position.KEY_ARMED, BitUtil.check(status, 0));
         position.set(Position.KEY_IGNITION, BitUtil.check(status, 1));
         position.set(Position.KEY_CHARGE, BitUtil.check(status, 2));
+        position.set("gpsPower", BitUtil.check(status, 6));
         position.set(Position.KEY_BLOCKED, BitUtil.check(status, 7));
 
         switch (BitUtil.between(status, 3, 6)) {
@@ -262,6 +274,7 @@ public class Gt06ProtocolDecoder extends BaseProtocolDecoder {
                 break;
             case 2:
                 position.addAlarm(Position.ALARM_POWER_CUT);
+                position.set(Position.KEY_POWER, 0.0);
                 break;
             case 3:
                 position.addAlarm(Position.ALARM_LOW_BATTERY);
@@ -278,6 +291,65 @@ public class Gt06ProtocolDecoder extends BaseProtocolDecoder {
             default:
                 break;
         }
+    }
+
+    private void decodeAlarmOther(Position position, ByteBuf alarm, boolean modelVl) {
+        switch (alarm.readUnsignedByte()) {
+            case 0x01:
+                position.addAlarm(Position.ALARM_SOS);
+                break;
+            case 0x02:
+                position.addAlarm(Position.ALARM_POWER_CUT);
+                position.set(Position.KEY_POWER, 0.0);
+                break;
+            case 0x03:
+                position.addAlarm(Position.ALARM_VIBRATION);
+                break;
+            case 0x04:
+                position.addAlarm(Position.ALARM_GEOFENCE_ENTER);
+                break;
+            case 0x05:
+                position.addAlarm(Position.ALARM_GEOFENCE_EXIT);
+                break;
+            case 0x06:
+                position.addAlarm(Position.ALARM_OVERSPEED);
+                break;
+            case 0x09:
+                position.addAlarm(Position.ALARM_TOW);
+                break;
+            case 0x0E, 0x0F, 0x19:
+                position.addAlarm(Position.ALARM_LOW_BATTERY);
+                break;
+            case 0x11, 0x15:
+                position.addAlarm(Position.ALARM_POWER_OFF);
+                break;
+            case 0x0C, 0x13, 0x25:
+                position.addAlarm(Position.ALARM_TAMPERING);
+                break;
+            case 0x14:
+                position.addAlarm(Position.ALARM_DOOR);
+                break;
+            case 0x18:
+                position.addAlarm(Position.ALARM_REMOVING);
+                break;
+            case 0x1A, 0x27, 0x30:
+                position.addAlarm(Position.ALARM_BRAKING);
+                break;
+            case 0x1B, 0x2A, 0x2B, 0x2E:
+                position.addAlarm(Position.ALARM_CORNERING);
+                break;
+            case 0x23:
+                position.addAlarm(Position.ALARM_FALL_DOWN);
+                break;
+            case 0x26:
+                position.addAlarm(Position.ALARM_ACCELERATION);
+                break;
+            case 0x2C:
+                position.addAlarm(Position.ALARM_ACCIDENT);
+                break;
+            default:
+                break;
+        };
     }
 
     private String decodeAlarm(short value, boolean modelVL) {
@@ -355,11 +427,17 @@ public class Gt06ProtocolDecoder extends BaseProtocolDecoder {
 
             getLastLocation(position, null);
 
-            int status = buf.readUnsignedByte();
-            position.set(Position.KEY_ARMED, BitUtil.check(status, 0));
-            position.set(Position.KEY_IGNITION, BitUtil.check(status, 1));
-            position.set(Position.KEY_CHARGE, BitUtil.check(status, 2));
-            position.set(Position.KEY_BLOCKED, BitUtil.check(status, 7));
+            position.set(Position.KEY_TYPE, type);
+
+            decodeStatus(position, buf);
+
+            // int status = buf.readUnsignedByte();
+            // position.set(Position.KEY_ARMED, BitUtil.check(status, 0));
+            // position.set(Position.KEY_IGNITION, BitUtil.check(status, 1));
+            // position.set(Position.KEY_CHARGE, BitUtil.check(status, 2));
+            // position.set("gpsPower", BitUtil.check(status, 6));
+            // position.set(Position.KEY_BLOCKED, BitUtil.check(status, 7));
+
             int battery = buf.readUnsignedByte();
             if (battery <= 6) {
                 position.set(Position.KEY_BATTERY_LEVEL, battery * 100 / 6);
@@ -413,8 +491,10 @@ public class Gt06ProtocolDecoder extends BaseProtocolDecoder {
                     position.set(Position.KEY_BATTERY_LEVEL, battery);
                 }
                 position.set(Position.KEY_RSSI, buf.readUnsignedByte() + 1);
-                short extension = buf.readUnsignedByte();
-                position.addAlarm(decodeAlarm(extension, modelVL));
+                // short extension = buf.readUnsignedByte();
+                // position.addAlarm(decodeAlarm(extension, modelVL));
+                decodeAlarmOther(position, buf, modelVL);
+
             }
 
             if (type == MSG_FENCE_MULTI) {
@@ -461,6 +541,8 @@ public class Gt06ProtocolDecoder extends BaseProtocolDecoder {
 
         int length = buf.readUnsignedShort();
         int type = buf.readUnsignedByte();
+
+        position.set(Position.KEY_TYPE, type);
 
         if (type == MSG_STRING_INFO) {
 
@@ -520,7 +602,7 @@ public class Gt06ProtocolDecoder extends BaseProtocolDecoder {
                             break;
                     }
                 }
-                //return position;
+                return position;
 
             } else if (subType == 0x05) {
 
