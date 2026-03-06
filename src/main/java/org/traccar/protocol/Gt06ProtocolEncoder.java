@@ -86,12 +86,12 @@ public class Gt06ProtocolEncoder extends BaseProtocolEncoder {
                 return encodeContent(command.getDeviceId(), "Reset#");
             case Command.TYPE_ENGINE_STOP:
                 if (alternative) {
-                    return encodeContent(command.getDeviceId(), "Relay2,ON," + password + "#");
+                    return encodeContent(command.getDeviceId(), "Relay,ON," + password + "#");
                 } else {
-                    return encodeContent(command.getDeviceId(), "Relay2,ON#");
+                    return encodeContent(command.getDeviceId(), "Relay,ON#");
                 }
             case Command.TYPE_ENGINE_RESUME:
-                return encodeContent(command.getDeviceId(), "Relay2,OFF#");
+                return encodeContent(command.getDeviceId(), "Relay,OFF#");
             case Command.TYPE_CUSTOM:
                 return encodeContent(command.getDeviceId(), command.getString(Command.KEY_DATA));
             default:
