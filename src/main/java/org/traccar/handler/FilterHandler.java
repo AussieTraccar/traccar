@@ -184,22 +184,22 @@ public class FilterHandler extends BasePositionHandler {
                 LOGGER.info("Position filtered by StaticMovement-calcJump from device: {} (d:{} t:{} s:{}mps c:{}mps->{}kn)", device.getUniqueId(), distance, time, speed, calculatedMps, calculatedKn);
             }
 
-//            boolean motionDevice = device.getMotionState();
-//            boolean motionState = (position.getAttributes().get("motion") != null && (boolean) position.getAttributes().get("motion"));
-//            if (motionDevice != motionState) {
-//                LOGGER.info("Position filtered by StaticMovement-deviceState ({}/{}) from device: {}", motionDevice, motionState, device.getUniqueId());
-//            }
+            boolean motionState = device.getMotionState();
+            boolean motionPosition = (position.getAttributes().get("motion") != null && (boolean) position.getAttributes().get("motion"));
+            if (motionState || motionPosition) {
+                LOGGER.info("Position filtered by StaticMovement-statePosition ({}/{}) from device: {}", motionState, motionPosition, device.getUniqueId());
+            }
 
             StringBuilder filterStaticType = new StringBuilder();
-//            filterStaticType.setLength(0);
+            // filterStaticType.setLength(0);
 
             if (position.getBoolean(Position.KEY_IGNITION) || last.getBoolean(Position.KEY_IGNITION)) {
                 LOGGER.info("Position NOT filtered by StaticMovement-onIgnition from device: {}", device.getUniqueId());
                 return false;
             }
             // filter all devices in motion state and zero speed or distance values
-            if (device.getMotionState()) {
-                if (position.getSpeed() == 0.0 && distance == 0) {
+            if (motionPosition) {
+                if (position.getSpeed() == 0.0 && last.getSpeed() == 0.0 && distance == 0) {
                     filterStaticType.append("-noSpeed");
                 } else {
                     if (position.getProtocol().equals("gt06")) {
@@ -215,11 +215,11 @@ public class FilterHandler extends BasePositionHandler {
                         }
                     }
                 }
-            } else {
+            //} else {
                 // filter all devices not in motion state and zero speed and greater than filterDistance values
-                if (position.getSpeed() == 0.0 && last.getSpeed() == 0.0 && distance > filterDistance) {
-                    filterStaticType.append("-noMotion");
-                }
+                //if (position.getSpeed() == 0.0 && last.getSpeed() == 0.0 && distance > filterDistance) {
+                //    filterStaticType.append("-noMotion");
+                //}
             }
             if (!filterStaticType.isEmpty()) {
                 LOGGER.info("Position filtered by StaticMovement{} from device: {}", filterStaticType, device.getUniqueId());
@@ -386,7 +386,6 @@ public class FilterHandler extends BasePositionHandler {
         }
 
         if (!filterType.isEmpty()) {
-            // duplicate positions appear with gt06 battery updates for some reason
             if (skipAttributes(position, preceding)  && !filterMaxSpeed(position, preceding) && !filterMinPeriod(position, preceding) && !filterDailyLimit(position, preceding)) {
                 position.setLatitude(cacheManager.getPosition(deviceId).getLatitude());
                 position.setLongitude(cacheManager.getPosition(deviceId).getLongitude());
