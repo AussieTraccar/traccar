@@ -48,17 +48,17 @@ public class ReportMailer {
         this.textTemplateFormatter = textTemplateFormatter;
     }
 
-    public void sendAsync(long userId, String url, ReportExecutor executor) {
+    public void sendAsync(long userId, String url, String type, ReportExecutor executor) {
         new Thread(() -> {
             try {
                 var stream = new ByteArrayOutputStream();
                 executor.execute(stream);
 
                 MimeBodyPart attachment = new MimeBodyPart();
-                if (url.isEmpty()) {
-                    attachment.setFileName("manual-report.xlsx");
-                } else {
+                if (type.isEmpty()) {
                     attachment.setFileName("scheduled-report.xlsx");
+                } else {
+                    attachment.setFileName("manual-report.xlsx");
                 }
                 attachment.setDataHandler(new DataHandler(new ByteArrayDataSource(
                         stream.toByteArray(), "application/octet-stream")));
@@ -66,6 +66,7 @@ public class ReportMailer {
                 User user = permissionsService.getUser(userId);
                 var velocityContext = textTemplateFormatter.prepareContext(permissionsService.getServer(), user);
                 velocityContext.put("reportUrl", url);
+                velocityContext.put("reportType", type);
                 var fullMessage = textTemplateFormatter.formatMessage(velocityContext, "scheduledReport", false);
                 mailManager.sendMessage(user, false, fullMessage.subject(), fullMessage.body(), attachment);
             } catch (StorageException | IOException | MessagingException e) {

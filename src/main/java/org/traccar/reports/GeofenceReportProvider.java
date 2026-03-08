@@ -15,10 +15,6 @@
  */
 package org.traccar.reports;
 
-import org.jxls.util.JxlsHelper;
-import org.traccar.config.Config;
-import org.traccar.config.Keys;
-
 import org.traccar.helper.model.DeviceUtil;
 import org.traccar.model.Device;
 import org.traccar.model.Event;
@@ -31,13 +27,6 @@ import org.traccar.storage.query.Condition;
 import org.traccar.storage.query.Order;
 import org.traccar.storage.query.Request;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.nio.file.Paths;
-
 import jakarta.inject.Inject;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -47,13 +36,11 @@ import java.util.HashMap;
 
 public class GeofenceReportProvider {
 
-    private final Config config;
     private final ReportUtils reportUtils;
     private final Storage storage;
 
     @Inject
-    public GeofenceReportProvider(Config config, ReportUtils reportUtils, Storage storage) {
-        this.config = config;
+    public GeofenceReportProvider(ReportUtils reportUtils, Storage storage) {
         this.reportUtils = reportUtils;
         this.storage = storage;
     }
@@ -101,22 +88,6 @@ public class GeofenceReportProvider {
         }
         result.sort(Comparator.comparing(GeofenceReportItem::getStartTime));
         return result;
-    }
-
-    public void getExcel(OutputStream outputStream,
-                         long userId, Collection<Long> deviceIds, Collection<Long> groupIds, Collection<Long> geofenceIds,
-                         Date from, Date to) throws StorageException, IOException {
-        Collection<GeofenceReportItem> summaries = getObjects(userId, deviceIds, groupIds, geofenceIds, from, to);
-
-        File file = Paths.get(config.getString(Keys.TEMPLATES_ROOT), "export", "geofence.xlsx").toFile();
-        try (InputStream inputStream = new FileInputStream(file)) {
-            var context = reportUtils.initializeContext(userId);
-            context.putVar("geofenceIds", geofenceIds);
-            context.putVar("from", from);
-            context.putVar("to", to);
-            JxlsHelper.getInstance().setUseFastFormulaProcessor(false)
-                    .processTemplate(inputStream, outputStream, context);
-        }
     }
 
 }

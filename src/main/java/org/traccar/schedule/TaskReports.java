@@ -131,27 +131,27 @@ public class TaskReports extends SingleScheduleTask {
             switch (report.getType()) {
                 case "events" -> {
                     var eventsReportProvider = injector.getInstance(EventsReportProvider.class);
-                    reportMailer.sendAsync(user.getId(), url.toString(), stream -> eventsReportProvider.getExcel(
+                    reportMailer.sendAsync(user.getId(), url.toString(), "",stream -> eventsReportProvider.getExcel(
                             stream, user.getId(), deviceIds, groupIds, List.of(), List.of(), from, to));
                 }
                 case "route" -> {
                     var routeReportProvider = injector.getInstance(RouteReportProvider.class);
-                    reportMailer.sendAsync(user.getId(), url.toString(), stream -> routeReportProvider.getExcel(
+                    reportMailer.sendAsync(user.getId(), url.toString(), "",stream -> routeReportProvider.getExcel(
                             stream, user.getId(), deviceIds, groupIds, from, to));
                 }
                 case "summary" -> {
                     var summaryReportProvider = injector.getInstance(SummaryReportProvider.class);
-                    reportMailer.sendAsync(user.getId(), url.toString(), stream -> summaryReportProvider.getExcel(
+                    reportMailer.sendAsync(user.getId(), url.toString(), "",stream -> summaryReportProvider.getExcel(
                             stream, user.getId(), deviceIds, groupIds, from, to, false));
                 }
                 case "trips" -> {
                     var tripsReportProvider = injector.getInstance(TripsReportProvider.class);
-                    reportMailer.sendAsync(user.getId(), url.toString(), stream -> tripsReportProvider.getExcel(
+                    reportMailer.sendAsync(user.getId(), url.toString(), "",stream -> tripsReportProvider.getExcel(
                             stream, user.getId(), deviceIds, groupIds, from, to));
                 }
                 case "stops" -> {
                     var stopsReportProvider = injector.getInstance(StopsReportProvider.class);
-                    reportMailer.sendAsync(user.getId(), url.toString(), stream -> stopsReportProvider.getExcel(
+                    reportMailer.sendAsync(user.getId(), url.toString(), "",stream -> stopsReportProvider.getExcel(
                             stream, user.getId(), deviceIds, groupIds, from, to));
                 }
                 default -> LOGGER.warn("Unsupported report type {}", report.getType());
