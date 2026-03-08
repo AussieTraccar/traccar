@@ -39,7 +39,7 @@ enforce {
 
 ext {
     guiceVersion = "7.0.0"
-    jettyVersion = "11.0.25"
+    jettyVersion = "11.0.26"
     jerseyVersion = "3.1.10"
     jacksonVersion = "2.18.2" // same version as jersey-media-json-jackson dependency
     nettyVersion = "4.2.1.Final"
@@ -128,7 +128,7 @@ jar {
     manifest {
         attributes(
                 "Main-Class": "org.traccar.Main",
-                "Implementation-Version": "6.7.5-GaC",
+                "Implementation-Version": "6.8.5-GaC",
                 "Class-Path": configurations.runtimeClasspath.files.collect { "lib/$it.name" }.join(" "))
     }
 }
