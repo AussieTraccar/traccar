@@ -395,7 +395,7 @@ public class Gt06ProtocolDecoder extends BaseProtocolDecoder {
         }
 
         String model = deviceSession != null ? getDeviceModel(deviceSession) : null;
-        boolean modelVL = model != null && Set.of("VL103", "VL110", "VL111", "LL303", "VL512").contains(model);
+        boolean modelVL = model != null && Set.of("VL103", "VL110", "VL111", "LL303", "VL512").contains(model.toUpperCase());
 
         if (type == MSG_LOGIN) {
 
