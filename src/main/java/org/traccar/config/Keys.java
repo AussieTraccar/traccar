@@ -792,14 +792,6 @@ public final class Keys {
             100);
 
     /**
-     * Events forwarding format. Available options are "json" and "kafka". Default is "json".
-     */
-    public static final ConfigKey<String> EVENT_FORWARD_TYPE = new StringConfigKey(
-            "event.forward.type",
-            List.of(KeyType.CONFIG),
-            "json");
-
-    /**
      * Events forwarding AMQP exchange.
      */
     public static final ConfigKey<String> EVENT_FORWARD_EXCHANGE = new StringConfigKey(

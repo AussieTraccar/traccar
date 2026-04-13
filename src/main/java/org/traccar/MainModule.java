@@ -38,17 +38,10 @@ import org.traccar.database.OpenIdProvider;
 import org.traccar.database.StatisticsManager;
 import org.traccar.forward.EventForwarder;
 import org.traccar.forward.EventForwarderJson;
-import org.traccar.forward.EventForwarderAmqp;
-import org.traccar.forward.EventForwarderKafka;
-import org.traccar.forward.EventForwarderMqtt;
 import org.traccar.forward.PositionForwarder;
 import org.traccar.forward.PositionForwarderJson;
-import org.traccar.forward.PositionForwarderAmqp;
-import org.traccar.forward.PositionForwarderKafka;
 import org.traccar.forward.PositionForwarderRedis;
 import org.traccar.forward.PositionForwarderUrl;
-import org.traccar.forward.PositionForwarderMqtt;
-import org.traccar.forward.PositionForwarderWialon;
 import org.traccar.geocoder.AddressFormat;
 import org.traccar.geocoder.Geocoder;
 import org.traccar.geocoder.GoogleGeocoder;
@@ -314,13 +307,7 @@ public class MainModule extends AbstractModule {
     @Provides
     public static EventForwarder provideEventForwarder(Config config, Client client, ObjectMapper objectMapper) {
         if (config.hasKey(Keys.EVENT_FORWARD_URL)) {
-            String forwardType = config.getString(Keys.EVENT_FORWARD_TYPE);
-            return switch (forwardType) {
-                case "amqp" -> new EventForwarderAmqp(config, objectMapper);
-                case "kafka" -> new EventForwarderKafka(config, objectMapper);
-                case "mqtt" -> new EventForwarderMqtt(config, objectMapper);
-                default -> new EventForwarderJson(config, client);
-            };
+            return new EventForwarderJson(config, client);
         }
         return null;
     }
@@ -333,11 +320,7 @@ public class MainModule extends AbstractModule {
         if (config.hasKey(Keys.FORWARD_URL)) {
             return switch (config.getString(Keys.FORWARD_TYPE)) {
                 case "json" -> new PositionForwarderJson(config, client, objectMapper, cacheManager);
-                case "amqp" -> new PositionForwarderAmqp(config, objectMapper);
-                case "kafka" -> new PositionForwarderKafka(config, objectMapper);
-                case "mqtt" -> new PositionForwarderMqtt(config, objectMapper);
                 case "redis" -> new PositionForwarderRedis(config, objectMapper);
-                case "wialon" -> new PositionForwarderWialon(config, executorService, "1.0", false);
                 default -> new PositionForwarderUrl(config, client, objectMapper);
             };
         }
