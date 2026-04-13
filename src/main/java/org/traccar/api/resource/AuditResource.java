@@ -15,8 +15,11 @@
  */
 package org.traccar.api.resource;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.traccar.api.BaseResource;
 import org.traccar.model.Action;
+import org.traccar.model.User;
 import org.traccar.storage.StorageException;
 import org.traccar.storage.query.Columns;
 import org.traccar.storage.query.Condition;
@@ -31,20 +34,33 @@ import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
 import java.util.Collection;
 import java.util.Date;
+import java.util.stream.Collectors;
 
 @Path("audit")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class AuditResource extends BaseResource {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(AuditResource.class);
+
     @GET
     public Collection<Action> get(
             @QueryParam("from") Date from, @QueryParam("to") Date to) throws StorageException {
         permissionsService.checkAdmin(getUserId());
-        return storage.getObjects(Action.class, new Request(
-                new Columns.All(),
-                new Condition.Between("actionTime", "from", from, "to", to),
-                new Order("actionTime")));
+
+        var users = storage.getObjects(User.class, new Request(new Columns.All()))
+                .stream().collect(Collectors.toMap(User::getId, User::getName));
+
+        LOGGER.info("Audit users: {}", users);
+
+        var actions = storage.getObjects(Action.class, new Request(
+                            new Columns.All(),
+                            new Condition.Between("actionTime", "from", from, "to", to),
+                            new Order("actionTime")));
+            for (Action action : actions) {
+                action.setUserName(users.get(action.getUserId()));
+            }
+        return actions;
     }
 
 }

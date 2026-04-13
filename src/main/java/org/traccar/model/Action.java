@@ -15,6 +15,7 @@
  */
 package org.traccar.model;
 
+import org.traccar.storage.QueryIgnore;
 import org.traccar.storage.StorageName;
 
 import java.util.Date;
@@ -50,6 +51,17 @@ public class Action extends ExtendedModel {
 
     public void setUserId(long userId) {
         this.userId = userId;
+    }
+
+    private String userName;
+
+    @QueryIgnore
+    public String getUserName() {
+        return userName;
+    }
+
+    public void setUserName(String userName) {
+        this.userName = userName;
     }
 
     private String actionType;
