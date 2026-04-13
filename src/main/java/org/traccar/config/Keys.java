@@ -1308,17 +1308,6 @@ public final class Keys {
             List.of(KeyType.CONFIG));
 
     /**
-     * If false, the server expects all locations to come sequentially (for each device). Filter checks for duplicates,
-     * distance, speed, or time period only against the location that was last received by server.
-     * If true, the server expects locations to come at random order (since tracking device might go offline).
-     * Filter checks for duplicates, distance, speed, or time period against the preceding Position's.
-     * Important: setting to true can cause potential performance issues.
-     */
-    public static final ConfigKey<Boolean> FILTER_RELATIVE = new BooleanConfigKey(
-            "filter.relative",
-            List.of(KeyType.CONFIG));
-
-    /**
      * Time limit for the filtering in seconds. If the time difference between the last position was received by server
      * and a new position is received by server is more than this limit, the new position will not be filtered out.
      */
