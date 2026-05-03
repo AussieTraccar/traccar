@@ -1040,6 +1040,59 @@ public final class Keys {
             List.of(KeyType.CONFIG));
 
     /**
+     * Ntfy API URL.
+     */
+    public static final ConfigKey<String> NOTIFICATOR_NTFY_URL = new StringConfigKey(
+            "notificator.ntfy.url",
+            List.of(KeyType.CONFIG),
+            "https://ntfy.sh");
+
+    /**
+     * Ntfy message topic.
+     */
+    public static final ConfigKey<String> NOTIFICATOR_NTFY_TOPIC = new StringConfigKey(
+            "notificator.ntfy.topic",
+            List.of(KeyType.CONFIG),
+            "myTraccar-Alerts");
+
+    /**
+     * Ntfy message priority.
+     */
+    public static final ConfigKey<Integer> NOTIFICATOR_NTFY_PRIORITY = new IntegerConfigKey(
+            "notificator.ntfy.priority",
+            List.of(KeyType.CONFIG),
+            3);
+
+    /**
+     * Ntfy message tags.
+     * The value is a comma-separated list of tag names.
+     */
+    public static final ConfigKey<String> NOTIFICATOR_NTFY_TAGS = new StringConfigKey(
+            "notificator.ntfy.tags",
+            List.of(KeyType.CONFIG));
+
+    /**
+     * Ntfy API token authentication value. This value takes precedence over user and password.
+     */
+    public static final ConfigKey<String> NOTIFICATOR_NTFY_TOKEN = new StringConfigKey(
+            "notificator.ntfy.token",
+            List.of(KeyType.CONFIG));
+
+    /**
+     * Ntfy API basic authentication user.
+     */
+    public static final ConfigKey<String> NOTIFICATOR_NTFY_USER = new StringConfigKey(
+            "notificator.ntfy.user",
+            List.of(KeyType.CONFIG));
+
+    /**
+     * Ntfy API basic authentication password.
+     */
+    public static final ConfigKey<String> NOTIFICATOR_NTFY_PASSWORD = new StringConfigKey(
+            "notificator.ntfy.password",
+            List.of(KeyType.CONFIG));
+
+    /**
      * Pushover notification user key.
      */
     public static final ConfigKey<String> NOTIFICATOR_PUSHOVER_USER = new StringConfigKey(

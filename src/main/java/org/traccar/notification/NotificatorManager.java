@@ -24,6 +24,7 @@ import org.traccar.notificators.Notificator;
 import org.traccar.notificators.NotificatorCommand;
 import org.traccar.notificators.NotificatorFirebase;
 import org.traccar.notificators.NotificatorMail;
+import org.traccar.notificators.NotificatorNtfy;
 import org.traccar.notificators.NotificatorPushover;
 import org.traccar.notificators.NotificatorSms;
 import org.traccar.notificators.NotificatorTraccar;
@@ -47,7 +48,8 @@ public class NotificatorManager {
             "sms", NotificatorSms.class,
             "firebase", NotificatorFirebase.class,
             "traccar", NotificatorTraccar.class,
-            "pushover", NotificatorPushover.class);
+            "pushover", NotificatorPushover.class,
+            "ntfy", NotificatorNtfy.class);
 
     private final Injector injector;
 
