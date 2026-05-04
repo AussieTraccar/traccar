@@ -85,11 +85,15 @@ public class NotificatorGotify extends Notificator {
         json.title = message.subject();
         json.message = message.digest();
 
+        if ((url != null && !url.isEmpty()) && (token != null && !token.isEmpty())) {
         try (Response response = getRequestBuilder().post(
                 Entity.entity(json, MediaType.APPLICATION_JSON_TYPE.withCharset(StandardCharsets.UTF_8.name())))) {
             if (response.getStatus() / 100 != 2) {
                 throw new MessageException(response.readEntity(String.class));
             }
+        }
+        } else {
+            throw new MessageException("Gotify service URL or token not defined");
         }
 
     }

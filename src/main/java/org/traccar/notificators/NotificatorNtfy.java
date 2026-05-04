@@ -16,7 +16,6 @@
 package org.traccar.notificators;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.core.io.JsonStringEncoder;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import jakarta.ws.rs.client.Client;
@@ -34,8 +33,12 @@ import org.traccar.notification.MessageException;
 import org.traccar.notification.NotificationFormatter;
 import org.traccar.notification.NotificationMessage;
 
-import java.io.UnsupportedEncodingException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
+
+import java.util.Collections;
+import java.util.List;
 
 @Singleton
 public class NotificatorNtfy extends Notificator {
@@ -54,7 +57,7 @@ public class NotificatorNtfy extends Notificator {
         @JsonProperty("priority")
         private Integer priority;
         @JsonProperty("tags")
-        private String tags;
+        private List<String> tags;
         @JsonProperty("title")
         private String title;
         @JsonProperty("message")
@@ -62,7 +65,7 @@ public class NotificatorNtfy extends Notificator {
     }
 
     @Inject
-    public NotificatorNtfy(Config config, NotificationFormatter notificationFormatter, Client client) {
+    public NotificatorNtfy(Config config, NotificationFormatter notificationFormatter, Client client) throws MalformedURLException {
         super(notificationFormatter);
         this.client = client;
         url = config.getString(Keys.NOTIFICATOR_NTFY_URL);
@@ -79,26 +82,17 @@ public class NotificatorNtfy extends Notificator {
                 authorization = null;
             }
         }
-        topic = config.getString(Keys.NOTIFICATOR_NTFY_TOPIC);
+
+        if (config.hasKey(Keys.WEB_URL)) {
+            topic = (new URL(config.getString(Keys.WEB_URL)).getHost().replaceAll("\\.", "-")
+                    + "_"
+                    + config.getString(Keys.NOTIFICATOR_NTFY_TOPIC).toLowerCase());
+        } else {
+            topic = config.getString(Keys.NOTIFICATOR_NTFY_TOPIC).toLowerCase();
+        }
+
         priority = config.getInteger(Keys.NOTIFICATOR_NTFY_PRIORITY);
         tags = config.getString(Keys.NOTIFICATOR_NTFY_TAGS);
-    }
-
-    private String prepareValue(String value) throws UnsupportedEncodingException {
-        return new String(JsonStringEncoder.getInstance().quoteAsString(value));
-    }
-
-    private String preparePayload(String topic, String title, String message, Integer priority, String tags) {
-        try {
-            return "{\"topic\": \"{topic}\",\"title\": \"{title}\",\"message\": \"{message}\",\"priority\": {priority},\"tags\": [{tags}]}"
-                    .replace("{topic}", prepareValue(topic))
-                    .replace("{title}", prepareValue(title))
-                    .replace("{message}", prepareValue(message))
-                    .replace("{priority}", prepareValue(String.valueOf(priority)))
-                    .replace("{tags}", (tags != null && !tags.isEmpty()  ? "\"" + prepareValue(tags) + "\"" : ""));
-        } catch (UnsupportedEncodingException e) {
-            throw new RuntimeException(e);
-        }
     }
 
     private Invocation.Builder getRequestBuilder() {
@@ -124,7 +118,9 @@ public class NotificatorNtfy extends Notificator {
         if (user.hasAttribute("ntfyMessageTopic")) {
             json.topic = user.getString("ntfyMessageTopic");
         } else {
-            json.topic = this.topic;
+            json.topic = this.topic
+                    + "_"
+                    + user.getName().replaceAll(" ", "").toLowerCase();
         }
         if (user.hasAttribute("ntfyMessagePriority")) {
             json.priority = user.getInteger("ntfyMessagePriority");
@@ -132,19 +128,23 @@ public class NotificatorNtfy extends Notificator {
             json.priority = this.priority;
         }
         if (user.hasAttribute("ntfyMessageTags")) {
-            json.tags = user.getString("ntfyMessageTags");
+            json.tags = Collections.singletonList(user.getString("ntfyMessageTags"));
         } else {
-            json.tags = this.tags;
+            json.tags = Collections.singletonList(this.tags != null ? this.tags : "");
         }
 
         json.title = message.subject();
         json.message = message.digest();
 
-        try (Response response = getRequestBuilder().post(
-                Entity.entity(preparePayload(json.topic, json.title, json.message, json.priority, json.tags), MediaType.APPLICATION_JSON_TYPE.withCharset(StandardCharsets.UTF_8.name())))) {
-            if (response.getStatus() / 100 != 2) {
-                throw new MessageException(response.readEntity(String.class));
+        if (url != null && !url.isEmpty()) {
+            try (Response response = getRequestBuilder().post(
+                    Entity.entity(json, MediaType.APPLICATION_JSON_TYPE.withCharset(StandardCharsets.UTF_8.name())))) {
+                if (response.getStatus() / 100 != 2) {
+                    throw new MessageException(response.readEntity(String.class));
+                }
             }
+        } else {
+            throw new MessageException("Ntfy service URL not defined");
         }
 
     }

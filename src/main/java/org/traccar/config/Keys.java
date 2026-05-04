@@ -1066,16 +1066,15 @@ public final class Keys {
      */
     public static final ConfigKey<String> NOTIFICATOR_NTFY_URL = new StringConfigKey(
             "notificator.ntfy.url",
-            List.of(KeyType.CONFIG),
-            "https://ntfy.sh");
+            List.of(KeyType.CONFIG));
 
     /**
-     * Ntfy message topic.
+     * Ntfy message topic (converted to lowercase).
      */
     public static final ConfigKey<String> NOTIFICATOR_NTFY_TOPIC = new StringConfigKey(
             "notificator.ntfy.topic",
             List.of(KeyType.CONFIG),
-            "myTraccar-Alerts");
+            "mytraccar-alerts");
 
     /**
      * Ntfy message priority.
