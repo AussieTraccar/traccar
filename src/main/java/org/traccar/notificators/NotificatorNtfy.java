@@ -43,19 +43,22 @@ public class NotificatorNtfy extends Notificator {
     private final Client client;
 
     private String url;
+    private String authorization;
     private final String topic;
     private final Integer priority;
     private final String tags;
-    private final String authorization;
-    private final String template;
 
-    public static class Message {
+    public static class JsonPayload {
         @JsonProperty("topic")
         private String topic;
         @JsonProperty("priority")
         private Integer priority;
         @JsonProperty("tags")
         private String tags;
+        @JsonProperty("title")
+        private String title;
+        @JsonProperty("message")
+        private String message;
     }
 
     @Inject
@@ -63,9 +66,6 @@ public class NotificatorNtfy extends Notificator {
         super(notificationFormatter);
         this.client = client;
         url = config.getString(Keys.NOTIFICATOR_NTFY_URL);
-        topic = config.getString(Keys.NOTIFICATOR_NTFY_TOPIC);
-        priority = config.getInteger(Keys.NOTIFICATOR_NTFY_PRIORITY);
-        tags = config.getString(Keys.NOTIFICATOR_NTFY_TAGS);
         if (config.hasKey(Keys.NOTIFICATOR_NTFY_TOKEN)) {
             authorization = "Bearer "
                         + config.getString(Keys.NOTIFICATOR_NTFY_TOKEN);
@@ -79,7 +79,9 @@ public class NotificatorNtfy extends Notificator {
                 authorization = null;
             }
         }
-        template = "{\"topic\": \"{topic}\",\"title\": \"{title}\",\"message\": \"{message}\",\"priority\": {priority},\"tags\": [{tags}]}";
+        topic = config.getString(Keys.NOTIFICATOR_NTFY_TOPIC);
+        priority = config.getInteger(Keys.NOTIFICATOR_NTFY_PRIORITY);
+        tags = config.getString(Keys.NOTIFICATOR_NTFY_TAGS);
     }
 
     private String prepareValue(String value) throws UnsupportedEncodingException {
@@ -88,7 +90,7 @@ public class NotificatorNtfy extends Notificator {
 
     private String preparePayload(String topic, String title, String message, Integer priority, String tags) {
         try {
-            return template
+            return "{\"topic\": \"{topic}\",\"title\": \"{title}\",\"message\": \"{message}\",\"priority\": {priority},\"tags\": [{tags}]}"
                     .replace("{topic}", prepareValue(topic))
                     .replace("{title}", prepareValue(title))
                     .replace("{message}", prepareValue(message))
@@ -108,31 +110,38 @@ public class NotificatorNtfy extends Notificator {
     }
 
     @Override
-    public void send(User user, NotificationMessage shortMessage, Event event, Position position) throws MessageException {
+    public void send(User user, NotificationMessage message, Event event, Position position) throws MessageException {
 
-        Message message = new Message();
+        JsonPayload json = new JsonPayload();
 
         if (user.hasAttribute("ntfyUrl")) {
             url = user.getString("ntfyUrl");
         }
+        if (user.hasAttribute("ntfyToken")) {
+            authorization = "Bearer "
+                    + user.getString("ntfyToken");
+        }
         if (user.hasAttribute("ntfyMessageTopic")) {
-            message.topic = user.getString("ntfyMessageTopic");
+            json.topic = user.getString("ntfyMessageTopic");
         } else {
-            message.topic = this.topic;
+            json.topic = this.topic;
         }
         if (user.hasAttribute("ntfyMessagePriority")) {
-            message.priority = user.getInteger("ntfyMessagePriority");
+            json.priority = user.getInteger("ntfyMessagePriority");
         } else {
-            message.priority = this.priority;
+            json.priority = this.priority;
         }
         if (user.hasAttribute("ntfyMessageTags")) {
-            message.tags = user.getString("ntfyMessageTags");
+            json.tags = user.getString("ntfyMessageTags");
         } else {
-            message.tags = this.tags;
+            json.tags = this.tags;
         }
 
+        json.title = message.subject();
+        json.message = message.digest();
+
         try (Response response = getRequestBuilder().post(
-                Entity.entity(preparePayload(message.topic, shortMessage.subject(), shortMessage.digest(), message.priority, message.tags), MediaType.APPLICATION_JSON_TYPE.withCharset(StandardCharsets.UTF_8.name())))) {
+                Entity.entity(preparePayload(json.topic, json.title, json.message, json.priority, json.tags), MediaType.APPLICATION_JSON_TYPE.withCharset(StandardCharsets.UTF_8.name())))) {
             if (response.getStatus() / 100 != 2) {
                 throw new MessageException(response.readEntity(String.class));
             }

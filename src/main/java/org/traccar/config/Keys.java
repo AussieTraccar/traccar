@@ -1040,7 +1040,29 @@ public final class Keys {
             List.of(KeyType.CONFIG));
 
     /**
-     * Ntfy API URL.
+     * Gotify API service full URL.
+     */
+    public static final ConfigKey<String> NOTIFICATOR_GOTIFY_URL = new StringConfigKey(
+            "notificator.gotify.url",
+            List.of(KeyType.CONFIG));
+
+    /**
+     * Gotify API access token value.
+     */
+    public static final ConfigKey<String> NOTIFICATOR_GOTIFY_TOKEN = new StringConfigKey(
+            "notificator.gotify.token",
+            List.of(KeyType.CONFIG));
+
+    /**
+     * Gotify message priority.
+     */
+    public static final ConfigKey<Integer> NOTIFICATOR_GOTIFY_PRIORITY = new IntegerConfigKey(
+            "notificator.gotify.priority",
+            List.of(KeyType.CONFIG),
+            4);
+
+    /**
+     * Ntfy API service full URL.
      */
     public static final ConfigKey<String> NOTIFICATOR_NTFY_URL = new StringConfigKey(
             "notificator.ntfy.url",
@@ -1072,7 +1094,7 @@ public final class Keys {
             List.of(KeyType.CONFIG));
 
     /**
-     * Ntfy API token authentication value. This value takes precedence over user and password.
+     * Ntfy API access token value. This value takes precedence over user and password.
      */
     public static final ConfigKey<String> NOTIFICATOR_NTFY_TOKEN = new StringConfigKey(
             "notificator.ntfy.token",
