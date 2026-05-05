@@ -48,6 +48,7 @@ public class NetworkForwarder {
 
     public void forward(InetSocketAddress source, int port, boolean datagram, byte[] data) {
         try {
+            LOGGER.info("Network forwarding: {}:/{}:{}", (datagram ? "UDP" : "TCP"), destination, port);
             if (datagram) {
                 connectionUdp.send(new DatagramPacket(data, data.length, destination, port));
             } else {
