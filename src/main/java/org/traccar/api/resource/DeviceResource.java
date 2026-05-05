@@ -187,6 +187,50 @@ public class DeviceResource extends BaseObjectResource<Device> {
         return Response.noContent().build();
     }
 
+    private String avatarExtension(String type) {
+        return switch (type) {
+            case "image/jpeg" -> "jpg";
+            case "image/png" -> "png";
+            default -> throw new IllegalArgumentException("Unsupported image type");
+        };
+    }
+
+    @Path("{id}/avatar")
+    @POST
+    @Consumes("image/*")
+    public Response uploadAvatar(
+            @PathParam("id") long deviceId, File file,
+            @HeaderParam(HttpHeaders.CONTENT_TYPE) String type) throws StorageException, IOException {
+
+        permissionsService.checkEdit(getUserId(), Device.class, false, false);
+
+        Device device = storage.getObject(Device.class, new Request(
+                new Columns.All(),
+                new Condition.And(
+                        new Condition.Equals("id", deviceId),
+                        new Condition.Permission(User.class, getUserId(), Device.class))));
+        if (device != null) {
+            String name = "avatar";
+            String extension = avatarExtension(type);
+            try (var input = new FileInputStream(file);
+                 var output = mediaManager.createFileStream(device.getUniqueId(), name, extension)) {
+
+                long transferred = 0;
+                byte[] buffer = new byte[DEFAULT_BUFFER_SIZE];
+                int read;
+                while ((read = input.read(buffer, 0, buffer.length)) >= 0) {
+                    output.write(buffer, 0, read);
+                    transferred += read;
+                    if (transferred > IMAGE_SIZE_LIMIT) {
+                        throw new IllegalArgumentException("Image size limit exceeded");
+                    }
+                }
+            }
+            return Response.ok(name + "." + extension).build();
+        }
+        return Response.status(Response.Status.NOT_FOUND).build();
+    }
+
     private String imageExtension(String type) {
         return switch (type) {
             case "image/jpeg" -> "jpg";
@@ -204,13 +248,15 @@ public class DeviceResource extends BaseObjectResource<Device> {
             @PathParam("id") long deviceId, File file,
             @HeaderParam(HttpHeaders.CONTENT_TYPE) String type) throws StorageException, IOException {
 
+        permissionsService.checkEdit(getUserId(), Device.class, false, false);
+
         Device device = storage.getObject(Device.class, new Request(
                 new Columns.All(),
                 new Condition.And(
                         new Condition.Equals("id", deviceId),
                         new Condition.Permission(User.class, getUserId(), Device.class))));
         if (device != null) {
-            String name = "device";
+            String name = "avatar";
             String extension = imageExtension(type);
             try (var input = new FileInputStream(file);
                     var output = mediaManager.createFileStream(device.getUniqueId(), name, extension)) {
