@@ -34,7 +34,6 @@ import org.traccar.notification.NotificationFormatter;
 import org.traccar.notification.NotificationMessage;
 
 import java.net.MalformedURLException;
-import java.net.URL;
 import java.nio.charset.StandardCharsets;
 
 import java.util.Collections;
@@ -82,15 +81,7 @@ public class NotificatorNtfy extends Notificator {
                 authorization = null;
             }
         }
-
-        if (config.hasKey(Keys.WEB_URL)) {
-            topic = (new URL(config.getString(Keys.WEB_URL)).getHost().replaceAll("\\.", "-")
-                    + "_"
-                    + config.getString(Keys.NOTIFICATOR_NTFY_TOPIC).toLowerCase());
-        } else {
-            topic = config.getString(Keys.NOTIFICATOR_NTFY_TOPIC).toLowerCase();
-        }
-
+        topic = config.getString(Keys.NOTIFICATOR_NTFY_TOPIC).replaceAll("[^0-9a-zA-Z_-]", "").toLowerCase();
         priority = config.getInteger(Keys.NOTIFICATOR_NTFY_PRIORITY);
         tags = config.getString(Keys.NOTIFICATOR_NTFY_TAGS);
     }
@@ -116,7 +107,7 @@ public class NotificatorNtfy extends Notificator {
                     + user.getString("ntfyToken");
         }
         if (user.hasAttribute("ntfyMessageTopic")) {
-            json.topic = user.getString("ntfyMessageTopic");
+            json.topic = user.getString("ntfyMessageTopic").replaceAll("[^0-9a-zA-Z_-]", "");
         } else {
             json.topic = this.topic
                     + "_"
