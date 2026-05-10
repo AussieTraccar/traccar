@@ -51,7 +51,7 @@ public class NotificatorNtfy extends Notificator {
     private final Integer priority;
     private final String tags;
 
-    public static class JsonPayload {
+    public static class NotificationItem {
         @JsonProperty("topic")
         private String topic;
         @JsonProperty("priority")
@@ -98,43 +98,47 @@ public class NotificatorNtfy extends Notificator {
     @Override
     public void send(User user, NotificationMessage message, Event event, Position position) throws MessageException {
 
-        JsonPayload json = new JsonPayload();
+        NotificationItem item = new NotificationItem();
 
         if (user.hasAttribute("ntfyUrl")) {
             url = user.getString("ntfyUrl");
         }
+
         if (user.hasAttribute("ntfyToken")) {
             authorization = "Bearer "
                     + user.getString("ntfyToken");
         }
+
         if (user.hasAttribute("ntfyMessageTopic")) {
-            json.topic = user.getString("ntfyMessageTopic").replaceAll("[^0-9a-zA-Z_-]", "");
+            item.topic = user.getString("ntfyMessageTopic").replaceAll("[^0-9a-zA-Z_-]", "");
         } else {
-            json.topic = this.topic
+            item.topic = this.topic
                     + "_"
                     + user.getName().replaceAll(" ", "").toLowerCase();
         }
+
         if (Objects.equals(message.sound(), "silent") || Objects.equals(message.sound(), "vibrate")) {
-            json.priority = 1;
+            item.priority = 1;
         } else if (message.priority()) {
-            json.priority = 4;
+            item.priority = 4;
         } else if (user.hasAttribute("ntfyMessagePriority")) {
-            json.priority = user.getInteger("ntfyMessagePriority");
+            item.priority = user.getInteger("ntfyMessagePriority");
         } else {
-            json.priority = this.priority;
-        }
-        if (user.hasAttribute("ntfyMessageTags")) {
-            json.tags = Collections.singletonList(user.getString("ntfyMessageTags"));
-        } else {
-            json.tags = Collections.singletonList(this.tags != null ? this.tags : "");
+            item.priority = this.priority;
         }
 
-        json.title = message.subject();
-        json.message = message.digest();
+        if (user.hasAttribute("ntfyMessageTags")) {
+            item.tags = Collections.singletonList(user.getString("ntfyMessageTags"));
+        } else {
+            item.tags = Collections.singletonList(this.tags != null ? this.tags : "");
+        }
+
+        item.title = message.subject();
+        item.message = message.digest();
 
         if (url != null && !url.isEmpty()) {
             try (Response response = getRequestBuilder().post(
-                    Entity.entity(json, MediaType.APPLICATION_JSON_TYPE.withCharset(StandardCharsets.UTF_8.name())))) {
+                    Entity.entity(item, MediaType.APPLICATION_JSON_TYPE.withCharset(StandardCharsets.UTF_8.name())))) {
                 if (response.getStatus() / 100 != 2) {
                     throw new MessageException(response.readEntity(String.class));
                 }
