@@ -34,6 +34,7 @@ import org.traccar.storage.query.Columns;
 import org.traccar.storage.query.Condition;
 import org.traccar.storage.query.Request;
 
+import java.lang.reflect.Array;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
@@ -121,9 +122,32 @@ public class TaskReports extends SingleScheduleTask {
         if (!groupIdsPart.isEmpty()) {
             url.append(groupIdsPart).append('&');
         }
+        boolean summaryDaily;
+        if (Objects.equals(report.getType(), "summary") && report.hasAttribute("daily")) {
+            summaryDaily = report.getBoolean("daily");
+            url.append("daily=").append(report.getBoolean("daily")).append('&');
+        } else {
+            summaryDaily = false;
+        }
+        if (report.hasAttribute("geofenceIds")) {
+            for (String geofenceId : report.getString("geofenceIds").split(",")) {
+                url.append("geofenceId=").append(geofenceId).append('&');
+            }
+        }
+        url.append("period=custom");
+        url.append('&');
         url.append("from=").append(URLEncoder.encode(DateUtil.formatDate(from, true), StandardCharsets.UTF_8));
         url.append('&');
         url.append("to=").append(URLEncoder.encode(DateUtil.formatDate(to, true), StandardCharsets.UTF_8));
+        url.append('&');
+        url.append("show=true");
+
+        LOGGER.info("Scheduled {} report: {}", report.getType(), url);
+
+//        ReportMailer reportMailer = injector.getInstance(ReportMailer.class);
+//        for (User user : users) {
+//            actionLogger.report(null, user.getId(), true, report.getType(), from, to, deviceIds, groupIds);
+//            reportMailer.sendAsync(user, url.toString(), true, report.getType());
 
         ReportMailer reportMailer = injector.getInstance(ReportMailer.class);
         for (User user : users) {
@@ -131,29 +155,30 @@ public class TaskReports extends SingleScheduleTask {
             switch (report.getType()) {
                 case "events" -> {
                     var eventsReportProvider = injector.getInstance(EventsReportProvider.class);
-                    reportMailer.sendAsync(user.getId(), url.toString(), "",stream -> eventsReportProvider.getExcel(
+                    reportMailer.sendAsync(user.getId(), url.toString(), true, "events",stream -> eventsReportProvider.getExcel(
                             stream, user.getId(), deviceIds, groupIds, List.of(), List.of(), from, to));
                 }
                 case "route" -> {
                     var routeReportProvider = injector.getInstance(RouteReportProvider.class);
-                    reportMailer.sendAsync(user.getId(), url.toString(), "",stream -> routeReportProvider.getExcel(
+                    reportMailer.sendAsync(user.getId(), url.toString(), true, "positions",stream -> routeReportProvider.getExcel(
                             stream, user.getId(), deviceIds, groupIds, from, to));
                 }
                 case "summary" -> {
                     var summaryReportProvider = injector.getInstance(SummaryReportProvider.class);
-                    reportMailer.sendAsync(user.getId(), url.toString(), "",stream -> summaryReportProvider.getExcel(
-                            stream, user.getId(), deviceIds, groupIds, from, to, false));
+                    reportMailer.sendAsync(user.getId(), url.toString(), true, "summary",stream -> summaryReportProvider.getExcel(
+                            stream, user.getId(), deviceIds, groupIds, from, to, summaryDaily));
                 }
                 case "trips" -> {
                     var tripsReportProvider = injector.getInstance(TripsReportProvider.class);
-                    reportMailer.sendAsync(user.getId(), url.toString(), "",stream -> tripsReportProvider.getExcel(
+                    reportMailer.sendAsync(user.getId(), url.toString(), true, "trips",stream -> tripsReportProvider.getExcel(
                             stream, user.getId(), deviceIds, groupIds, from, to));
                 }
                 case "stops" -> {
                     var stopsReportProvider = injector.getInstance(StopsReportProvider.class);
-                    reportMailer.sendAsync(user.getId(), url.toString(), "",stream -> stopsReportProvider.getExcel(
+                    reportMailer.sendAsync(user.getId(), url.toString(), true, "stops",stream -> stopsReportProvider.getExcel(
                             stream, user.getId(), deviceIds, groupIds, from, to));
                 }
+                case "geofences" -> reportMailer.sendAsync(user, url.toString(), true, report.getType());
                 default -> LOGGER.warn("Unsupported report type {}", report.getType());
             }
         }

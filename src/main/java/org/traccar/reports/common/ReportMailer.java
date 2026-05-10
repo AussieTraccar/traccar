@@ -48,14 +48,14 @@ public class ReportMailer {
         this.textTemplateFormatter = textTemplateFormatter;
     }
 
-    public void sendAsync(long userId, String url, String type, ReportExecutor executor) {
+    public void sendAsync(long userId, String url, boolean scheduled, String type, ReportExecutor executor) {
         new Thread(() -> {
             try {
                 var stream = new ByteArrayOutputStream();
                 executor.execute(stream);
 
                 MimeBodyPart attachment = new MimeBodyPart();
-                if (type.isEmpty()) {
+                if (scheduled) {
                     attachment.setFileName("scheduled-report.xlsx");
                 } else {
                     attachment.setFileName("manual-report.xlsx");
@@ -67,9 +67,25 @@ public class ReportMailer {
                 var velocityContext = textTemplateFormatter.prepareContext(permissionsService.getServer(), user);
                 velocityContext.put("reportUrl", url);
                 velocityContext.put("reportType", type);
+                velocityContext.put("reportScheduled", scheduled);
                 var fullMessage = textTemplateFormatter.formatMessage(velocityContext, "scheduledReport", false);
                 mailManager.sendMessage(user, false, fullMessage.subject(), fullMessage.body(), attachment);
             } catch (StorageException | IOException | MessagingException e) {
+                LOGGER.warn("Email report failed", e);
+            }
+        }).start();
+    }
+
+    public void sendAsync(User user, String url, boolean scheduled, String type) {
+        new Thread(() -> {
+            try {
+                var velocityContext = textTemplateFormatter.prepareContext(permissionsService.getServer(), user);
+                velocityContext.put("reportUrl", url);
+                velocityContext.put("reportType", type);
+                velocityContext.put("reportScheduled", scheduled);
+                var fullMessage = textTemplateFormatter.formatMessage(velocityContext, "scheduledReport", false);
+                mailManager.sendMessage(user, false, fullMessage.subject(), fullMessage.body());
+            } catch (StorageException | MessagingException e) {
                 LOGGER.warn("Email report failed", e);
             }
         }).start();
