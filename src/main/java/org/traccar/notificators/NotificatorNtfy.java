@@ -38,6 +38,7 @@ import java.nio.charset.StandardCharsets;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 @Singleton
 public class NotificatorNtfy extends Notificator {
@@ -113,7 +114,11 @@ public class NotificatorNtfy extends Notificator {
                     + "_"
                     + user.getName().replaceAll(" ", "").toLowerCase();
         }
-        if (user.hasAttribute("ntfyMessagePriority")) {
+        if (Objects.equals(message.sound(), "silent") || Objects.equals(message.sound(), "vibrate")) {
+            json.priority = 1;
+        } else if (message.priority()) {
+            json.priority = 4;
+        } else if (user.hasAttribute("ntfyMessagePriority")) {
             json.priority = user.getInteger("ntfyMessagePriority");
         } else {
             json.priority = this.priority;

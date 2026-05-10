@@ -28,6 +28,8 @@ import org.traccar.model.User;
 import org.traccar.notification.NotificationFormatter;
 import org.traccar.notification.NotificationMessage;
 
+import java.util.Objects;
+
 @Singleton
 public class NotificatorPushover extends Notificator {
 
@@ -78,7 +80,13 @@ public class NotificatorPushover extends Notificator {
             message.device = user.getString("pushoverDeviceNames").replaceAll(" *, *", ",");
         }
 
-        if (user.hasAttribute("pushoverNotificationSound")) {
+        if (Objects.equals(shortMessage.sound(), "silent")) {
+            message.sound = "none";
+        } else if (Objects.equals(shortMessage.sound(), "vibrate")) {
+            message.sound = "vibrate";
+        } else if (!Objects.equals(shortMessage.sound(), "default")) {
+            message.sound = shortMessage.sound();
+        } else if (user.hasAttribute("pushoverNotificationSound")) {
             message.sound = user.getString("pushoverNotificationSound");
         } else {
             message.sound = this.sound;

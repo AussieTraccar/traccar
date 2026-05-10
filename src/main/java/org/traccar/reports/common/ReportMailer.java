@@ -68,7 +68,7 @@ public class ReportMailer {
                 velocityContext.put("reportUrl", url);
                 velocityContext.put("reportType", type);
                 velocityContext.put("reportScheduled", scheduled);
-                var fullMessage = textTemplateFormatter.formatMessage(velocityContext, "scheduledReport", false);
+                var fullMessage = textTemplateFormatter.formatMessage(velocityContext, "scheduledReport", false, null);
                 mailManager.sendMessage(user, false, fullMessage.subject(), fullMessage.body(), attachment);
             } catch (StorageException | IOException | MessagingException e) {
                 LOGGER.warn("Email report failed", e);
@@ -83,7 +83,7 @@ public class ReportMailer {
                 velocityContext.put("reportUrl", url);
                 velocityContext.put("reportType", type);
                 velocityContext.put("reportScheduled", scheduled);
-                var fullMessage = textTemplateFormatter.formatMessage(velocityContext, "scheduledReport", false);
+                var fullMessage = textTemplateFormatter.formatMessage(velocityContext, "scheduledReport", false, null);
                 mailManager.sendMessage(user, false, fullMessage.subject(), fullMessage.body());
             } catch (StorageException | MessagingException e) {
                 LOGGER.warn("Email report failed", e);

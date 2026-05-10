@@ -33,6 +33,7 @@ import org.traccar.notification.NotificationFormatter;
 import org.traccar.notification.NotificationMessage;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Objects;
 
 @Singleton
 public class NotificatorGotify extends Notificator {
@@ -76,7 +77,11 @@ public class NotificatorGotify extends Notificator {
         if (user.hasAttribute("gotifyToken")) {
             token = user.getString("gotifyToken");
         }
-        if (user.hasAttribute("gotifyPriority")) {
+        if (Objects.equals(message.sound(), "silent") || Objects.equals(message.sound(), "vibrate")) {
+            json.priority = 1;
+        } else if (message.priority()) {
+            json.priority = 8;
+        } else if (user.hasAttribute("gotifyPriority")) {
             json.priority = user.getInteger("gotifyPriority");
         } else {
             json.priority = this.priority;

@@ -75,7 +75,8 @@ public class NotificationFormatter {
         }
 
         boolean priority = notification != null && notification.getBoolean("priority");
-        return textTemplateFormatter.formatMessage(velocityContext, event.getType(), priority);
+        String sound = notification != null && notification.hasAttribute("notification") ? notification.getString("notification") : "default";
+        return textTemplateFormatter.formatMessage(velocityContext, event.getType(), priority, sound);
     }
 
 }

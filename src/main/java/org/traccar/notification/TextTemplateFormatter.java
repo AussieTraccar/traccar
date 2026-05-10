@@ -81,7 +81,7 @@ public class TextTemplateFormatter {
         return velocityContext;
     }
 
-    public NotificationMessage formatMessage(VelocityContext velocityContext, String name, boolean priority) {
+    public NotificationMessage formatMessage(VelocityContext velocityContext, String name, boolean priority, String sound) {
         StringWriter writer = new StringWriter();
         try {
             Path targetFile = Path.of(templatesRoot, "notifications", DEFAULT_LANGUAGE, name + ".vm");
@@ -92,9 +92,9 @@ public class TextTemplateFormatter {
             template.merge(velocityContext, writer);
             return new NotificationMessage(
                     (String) velocityContext.get("subject"), (String) velocityContext.get("digest"),
-                    writer.toString(), priority);
+                    writer.toString(), priority, sound);
         } catch (ResourceNotFoundException e) {
-            return new NotificationMessage(name + ":subject undefined", name + ":digest undefined", name + ":body undefined", priority);
+            return new NotificationMessage(name + ":subject undefined", name + ":digest undefined", name + ":body undefined", priority, sound);
         }
     }
 
