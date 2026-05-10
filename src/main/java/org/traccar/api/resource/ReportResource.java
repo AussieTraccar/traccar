@@ -24,6 +24,7 @@ import org.traccar.model.Event;
 import org.traccar.model.Position;
 import org.traccar.model.Report;
 import org.traccar.model.UserRestrictions;
+import org.traccar.reports.CombinedReportProvider;
 import org.traccar.reports.DevicesReportProvider;
 import org.traccar.reports.EventsReportProvider;
 import org.traccar.reports.GeofenceReportProvider;
@@ -33,6 +34,7 @@ import org.traccar.reports.SummaryReportProvider;
 import org.traccar.reports.TripsReportProvider;
 import org.traccar.reports.common.ReportExecutor;
 import org.traccar.reports.common.ReportMailer;
+import org.traccar.reports.model.CombinedReportItem;
 import org.traccar.reports.model.GeofenceReportItem;
 import org.traccar.reports.model.StopReportItem;
 import org.traccar.reports.model.SummaryReportItem;
@@ -61,6 +63,9 @@ import java.util.List;
 public class ReportResource extends SimpleObjectResource<Report> {
 
     private static final String EXCEL = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+
+    @Inject
+    private CombinedReportProvider combinedReportProvider;
 
     @Inject
     private EventsReportProvider eventsReportProvider;
@@ -98,8 +103,7 @@ public class ReportResource extends SimpleObjectResource<Report> {
 
     private Response executeReport(long userId, boolean mail, String type, ReportExecutor executor) {
         if (mail) {
-            String url = "/reports/";
-            reportMailer.sendAsync(userId, url, type, executor);
+            reportMailer.sendAsync(userId, "/reports/", false, type, executor);
             return Response.noContent().build();
         } else {
             StreamingOutput stream = output -> {
@@ -112,6 +116,18 @@ public class ReportResource extends SimpleObjectResource<Report> {
             return Response.ok(stream)
                     .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=report.xlsx").build();
         }
+    }
+
+    @Path("combined")
+    @GET
+    public Collection<CombinedReportItem> getCombined(
+            @QueryParam("deviceId") List<Long> deviceIds,
+            @QueryParam("groupId") List<Long> groupIds,
+            @QueryParam("from") Date from,
+            @QueryParam("to") Date to) throws StorageException {
+        permissionsService.checkRestriction(getUserId(), UserRestrictions::getDisableReports);
+        actionLogger.report(request, getUserId(), false, "combined", from, to, deviceIds, groupIds);
+        return combinedReportProvider.getObjects(getUserId(), deviceIds, groupIds, from, to);
     }
 
     @Path("route")
