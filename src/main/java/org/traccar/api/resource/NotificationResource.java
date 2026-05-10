@@ -47,6 +47,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -106,6 +107,15 @@ public class NotificationResource extends ExtendedObjectResource<Notification> {
             throws MessageException, StorageException {
         User user = permissionsService.getUser(getUserId());
         notificatorManager.getNotificator(notificator).send(null, user, new Event("test", 0), null);
+        return Response.noContent().build();
+    }
+
+    @POST
+    @Path("test/{notificator}/{sound}")
+    public Response testMessage(@PathParam("notificator") String notificator, @PathParam("sound") String sound)
+            throws MessageException, StorageException {
+        User user = permissionsService.getUser(getUserId());
+        notificatorManager.getNotificator(notificator).send(user, (Objects.equals(notificator, "web") ? null : new NotificationMessage("Test message", "Test message", "Test message", false, sound)), new Event("test", 0), null);
         return Response.noContent().build();
     }
 
