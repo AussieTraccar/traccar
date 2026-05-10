@@ -50,11 +50,7 @@ public class GeofenceReportProvider {
                 new Columns.All(),
                 new Condition.And(
                         new Condition.Equals("deviceId", deviceId),
-                        new Condition.And(
-                                new Condition.Between("eventTime", "from", from, "to", to),
-                                new Condition.Or(
-                                        new Condition.Equals("type", Event.TYPE_GEOFENCE_ENTER),
-                                        new Condition.Equals("type", Event.TYPE_GEOFENCE_EXIT)))),
+                        new Condition.Between("eventTime", "from", from, "to", to)),
                 new Order("eventTime")));
     }
 
@@ -68,7 +64,7 @@ public class GeofenceReportProvider {
             var openEvents = new HashMap<Long, Event>();
             for (Event event : getEvents(device.getId(), from, to)) {
                 long geofenceId = event.getGeofenceId();
-                if (geofenceIds.contains(geofenceId)) {
+                if (geofenceIds == null || geofenceIds.isEmpty() || geofenceIds.contains(geofenceId)) {
                     if (Event.TYPE_GEOFENCE_ENTER.equals(event.getType())) {
                         openEvents.put(geofenceId, event);
                     } else if (Event.TYPE_GEOFENCE_EXIT.equals(event.getType())) {
