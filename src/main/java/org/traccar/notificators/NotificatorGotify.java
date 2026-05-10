@@ -44,7 +44,7 @@ public class NotificatorGotify extends Notificator {
     private String token;
     private final Integer priority;
 
-    public static class JsonPayload {
+    public static class NotificationItem {
         @JsonProperty("title")
         private String title;
         @JsonProperty("message")
@@ -69,30 +69,32 @@ public class NotificatorGotify extends Notificator {
     @Override
     public void send(User user, NotificationMessage message, Event event, Position position) throws MessageException {
 
-        JsonPayload json = new JsonPayload();
+        NotificationItem item = new NotificationItem();
 
         if (user.hasAttribute("gotifyUrl")) {
             url = user.getString("gotifyUrl");
         }
+
         if (user.hasAttribute("gotifyToken")) {
             token = user.getString("gotifyToken");
         }
+
         if (Objects.equals(message.sound(), "silent") || Objects.equals(message.sound(), "vibrate")) {
-            json.priority = 1;
+            item.priority = 1;
         } else if (message.priority()) {
-            json.priority = 8;
+            item.priority = 8;
         } else if (user.hasAttribute("gotifyPriority")) {
-            json.priority = user.getInteger("gotifyPriority");
+            item.priority = user.getInteger("gotifyPriority");
         } else {
-            json.priority = this.priority;
+            item.priority = this.priority;
         }
 
-        json.title = message.subject();
-        json.message = message.digest();
+        item.title = message.subject();
+        item.message = message.digest();
 
         if ((url != null && !url.isEmpty()) && (token != null && !token.isEmpty())) {
         try (Response response = getRequestBuilder().post(
-                Entity.entity(json, MediaType.APPLICATION_JSON_TYPE.withCharset(StandardCharsets.UTF_8.name())))) {
+                Entity.entity(item, MediaType.APPLICATION_JSON_TYPE.withCharset(StandardCharsets.UTF_8.name())))) {
             if (response.getStatus() / 100 != 2) {
                 throw new MessageException(response.readEntity(String.class));
             }
