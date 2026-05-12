@@ -40,6 +40,7 @@ import org.traccar.storage.query.Columns;
 import org.traccar.storage.query.Condition;
 import org.traccar.storage.query.Request;
 
+import jakarta.annotation.PreDestroy;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import java.net.InetSocketAddress;
@@ -54,6 +55,9 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -83,6 +87,14 @@ public class ConnectionManager implements BroadcastInterface {
 
     private final Map<Long, Timeout> timeouts = new ConcurrentHashMap<>();
 
+    private final long offlineGracePeriod;
+    private final Map<Long, ScheduledFuture<?>> pendingOfflineTasks = new ConcurrentHashMap<>();
+    private final ScheduledExecutorService offlineGraceScheduler = Executors.newSingleThreadScheduledExecutor(r -> {
+        Thread t = new Thread(r, "offline-grace-scheduler");
+        t.setDaemon(true);
+        return t;
+    });
+
     @Inject
     public ConnectionManager(
             Config config, CacheManager cacheManager, Storage storage,
@@ -96,8 +108,14 @@ public class ConnectionManager implements BroadcastInterface {
         this.broadcastService = broadcastService;
         this.deviceLookupService = deviceLookupService;
         deviceTimeout = config.getLong(Keys.STATUS_TIMEOUT);
+        offlineGracePeriod = config.getLong(Keys.EVENT_DEVICE_OFFLINE_MIN_DURATION);
         showUnknownDevices = config.getBoolean(Keys.WEB_SHOW_UNKNOWN_DEVICES);
         broadcastService.registerListener(this);
+    }
+
+    @PreDestroy
+    public void shutdown() {
+        offlineGraceScheduler.shutdown();
     }
 
     public DeviceSession getDeviceSession(long deviceId) {
@@ -194,11 +212,25 @@ public class ConnectionManager implements BroadcastInterface {
             Map<String, DeviceSession> endpointSessions = sessionsByEndpoint.remove(connectionKey);
             if (endpointSessions != null) {
                 for (DeviceSession deviceSession : endpointSessions.values()) {
+                    long deviceId = deviceSession.getDeviceId();
                     if (supportsOffline) {
-                        updateDevice(deviceSession.getDeviceId(), Device.STATUS_OFFLINE, null);
+                        if (offlineGracePeriod > 0) {
+                            ScheduledFuture<?> existing = pendingOfflineTasks.remove(deviceId);
+                            if (existing != null) {
+                                existing.cancel(false);
+                            }
+                            ScheduledFuture<?> task = offlineGraceScheduler.schedule(() -> {
+                                if (pendingOfflineTasks.remove(deviceId) != null) {
+                                    updateDevice(deviceId, Device.STATUS_OFFLINE, null);
+                                }
+                            }, offlineGracePeriod, TimeUnit.SECONDS);
+                            pendingOfflineTasks.put(deviceId, task);
+                        } else {
+                            updateDevice(deviceId, Device.STATUS_OFFLINE, null);
+                        }
                     }
-                    sessionsByDeviceId.remove(deviceSession.getDeviceId());
-                    cacheManager.removeDevice(deviceSession.getDeviceId(), connectionKey);
+                    sessionsByDeviceId.remove(deviceId);
+                    cacheManager.removeDevice(deviceId, connectionKey);
                 }
             }
             unknownByEndpoint.remove(connectionKey);
@@ -238,6 +270,13 @@ public class ConnectionManager implements BroadcastInterface {
 
         String oldStatus = device.getStatus();
         device.setStatus(status);
+
+        if (Device.STATUS_ONLINE.equals(status)) {
+            ScheduledFuture<?> pending = pendingOfflineTasks.remove(deviceId);
+            if (pending != null) {
+                pending.cancel(false);
+            }
+        }
 
         if (!status.equals(oldStatus)) {
             String eventType;
