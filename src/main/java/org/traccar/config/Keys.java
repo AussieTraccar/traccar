@@ -1138,6 +1138,34 @@ public final class Keys {
             List.of(KeyType.CONFIG));
 
     /**
+     * Telegram notification API key.
+     */
+    public static final ConfigKey<String> NOTIFICATOR_TELEGRAM_KEY = new StringConfigKey(
+            "notificator.telegram.key",
+            List.of(KeyType.CONFIG));
+
+    /**
+     * Telegram notification chat id to post messages to.
+     */
+    public static final ConfigKey<String> NOTIFICATOR_TELEGRAM_CHAT_ID = new StringConfigKey(
+            "notificator.telegram.chatId",
+            List.of(KeyType.CONFIG));
+
+    /**
+     * Telegram notification send location message.
+     */
+    public static final ConfigKey<Boolean> NOTIFICATOR_TELEGRAM_SEND_LOCATION = new BooleanConfigKey(
+            "notificator.telegram.sendLocation",
+            List.of(KeyType.CONFIG));
+
+    /**
+     * Telegram notification proxy URL.
+     */
+    public static final ConfigKey<String> NOTIFICATOR_TELEGRAM_PROXY_URL = new StringConfigKey(
+            "notificator.telegram.proxy.url",
+            List.of(KeyType.CONFIG));
+
+    /**
      * User expiration reminder. Value in milliseconds.
      */
     public static final ConfigKey<Long> NOTIFICATION_EXPIRATION_USER_REMINDER = new LongConfigKey(

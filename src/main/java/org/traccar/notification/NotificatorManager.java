@@ -29,6 +29,7 @@ import org.traccar.notificators.NotificatorNtfy;
 import org.traccar.notificators.NotificatorPushover;
 import org.traccar.notificators.NotificatorSms;
 import org.traccar.notificators.NotificatorTraccar;
+import org.traccar.notificators.NotificatorTelegram;
 import org.traccar.notificators.NotificatorWeb;
 
 import jakarta.inject.Inject;
@@ -49,6 +50,7 @@ public class NotificatorManager {
             "sms", NotificatorSms.class,
             "firebase", NotificatorFirebase.class,
             "traccar", NotificatorTraccar.class,
+            "telegram", NotificatorTelegram.class,
             "pushover", NotificatorPushover.class,
             "gotify", NotificatorGotify.class,
             "ntfy", NotificatorNtfy.class);
