@@ -758,22 +758,6 @@ public final class Keys {
             "url");
 
     /**
-     * Position forwarding AMQP exchange.
-     */
-    public static final ConfigKey<String> FORWARD_EXCHANGE = new StringConfigKey(
-            "forward.exchange",
-            List.of(KeyType.CONFIG),
-            "traccar");
-
-    /**
-     * Position forwarding Kafka topic or AQMP Routing Key.
-     */
-    public static final ConfigKey<String> FORWARD_TOPIC = new StringConfigKey(
-            "forward.topic",
-            List.of(KeyType.CONFIG),
-            "positions");
-
-    /**
      * URL to forward positions. Data is passed through URL parameters. For example, {uniqueId} for device identifier,
      * {latitude} and {longitude} for coordinates.
      */
@@ -825,22 +809,6 @@ public final class Keys {
             "forward.retry.limit",
             List.of(KeyType.CONFIG),
             100);
-
-    /**
-     * Events forwarding AMQP exchange.
-     */
-    public static final ConfigKey<String> EVENT_FORWARD_EXCHANGE = new StringConfigKey(
-            "event.forward.exchange",
-            List.of(KeyType.CONFIG),
-            "traccar");
-
-    /**
-     * Events forwarding Kafka topic or AQMP Routing Key.
-     */
-    public static final ConfigKey<String> EVENT_FORWARD_TOPIC = new StringConfigKey(
-            "event.forward.topic",
-            List.of(KeyType.CONFIG),
-            "events");
 
     /**
      * Events forwarding URL.
