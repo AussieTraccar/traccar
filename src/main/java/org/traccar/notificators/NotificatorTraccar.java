@@ -69,6 +69,8 @@ public class NotificatorTraccar extends Notificator {
         private String[] tokens;
         @JsonProperty("notification")
         private NotificationObject notification;
+        @JsonProperty("priority")
+        private boolean priority;
     }
 
     @Inject
@@ -90,7 +92,7 @@ public class NotificatorTraccar extends Notificator {
             NotificationObject item = new NotificationObject();
             item.title = shortMessage.subject();
             item.body = shortMessage.digest();
-            item.sound = "default";
+            item.sound = shortMessage.sound();
 
             String[] tokenArray = user.getString("notificationTokens").split("[, ]");
             List<String> registrationTokens = new ArrayList<>(Arrays.asList(tokenArray));
@@ -98,6 +100,7 @@ public class NotificatorTraccar extends Notificator {
             Message message = new Message();
             message.tokens = user.getString("notificationTokens").split("[, ]");
             message.notification = item;
+            message.priority = shortMessage.priority();
 
             var request = client.target(url).request().header("Authorization", "key=" + key);
             try (Response result = request.post(Entity.json(message))) {
