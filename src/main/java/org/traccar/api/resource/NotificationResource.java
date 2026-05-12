@@ -115,7 +115,14 @@ public class NotificationResource extends ExtendedObjectResource<Notification> {
     public Response testMessage(@PathParam("notificator") String notificator, @PathParam("sound") String sound)
             throws MessageException, StorageException {
         User user = permissionsService.getUser(getUserId());
-        notificatorManager.getNotificator(notificator).send(user, (Objects.equals(notificator, "web") ? null : new NotificationMessage("Test message", "Test message", "Test message", false, sound)), new Event("test", 0), null);
+        if (Objects.equals(notificator, "web")) {
+            notificatorManager.getNotificator(notificator)
+                .send(null, user, new Event("test", 0), null);
+        } else {
+            var newMessage = new NotificationMessage("Test message", "Test message", "Test message", false, sound);
+            notificatorManager.getNotificator(notificator)
+                .send(user, newMessage, new Event("test", 0), null);
+        }
         return Response.noContent().build();
     }
 
