@@ -97,26 +97,26 @@ public class Calendar extends ExtendedModel {
             return instant.atZone(ZoneOffset.UTC).toLocalDate();
         } else if (sample instanceof LocalDateTime) {
             return instant.atZone(ZoneOffset.UTC).toLocalDateTime();
-        } else if (sample instanceof ZonedDateTime) {
-            return instant.atZone(((ZonedDateTime) sample).getZone());
-        } else if (sample instanceof OffsetDateTime) {
-            return instant.atOffset(((OffsetDateTime) sample).getOffset());
+        } else if (sample instanceof ZonedDateTime zonedDateTime) {
+            return instant.atZone(zonedDateTime.getZone());
+        } else if (sample instanceof OffsetDateTime offsetDateTime) {
+            return instant.atOffset(offsetDateTime.getOffset());
         } else {
             return instant;
         }
     }
 
     private static Instant temporalToInstant(Temporal temporal) {
-        if (temporal instanceof ZonedDateTime) {
-            return ((ZonedDateTime) temporal).toInstant();
-        } else if (temporal instanceof OffsetDateTime) {
-            return ((OffsetDateTime) temporal).toInstant();
-        } else if (temporal instanceof LocalDateTime) {
-            return ((LocalDateTime) temporal).toInstant(ZoneOffset.UTC);
-        } else if (temporal instanceof LocalDate) {
-            return ((LocalDate) temporal).atStartOfDay(ZoneOffset.UTC).toInstant();
-        } else if (temporal instanceof Instant) {
-            return (Instant) temporal;
+        if (temporal instanceof ZonedDateTime zonedDateTime) {
+            return zonedDateTime.toInstant();
+        } else if (temporal instanceof OffsetDateTime offsetDateTime) {
+            return offsetDateTime.toInstant();
+        } else if (temporal instanceof LocalDateTime localDateTime) {
+            return localDateTime.toInstant(ZoneOffset.UTC);
+        } else if (temporal instanceof LocalDate localDate) {
+            return localDate.atStartOfDay(ZoneOffset.UTC).toInstant();
+        } else if (temporal instanceof Instant instantValue) {
+            return instantValue;
         } else {
             throw new IllegalArgumentException("Unsupported Temporal type");
         }

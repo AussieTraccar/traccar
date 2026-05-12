@@ -27,6 +27,7 @@ import org.traccar.database.MediaManager;
 import org.traccar.helper.LogAction;
 import org.traccar.model.Device;
 import org.traccar.model.DeviceAccumulators;
+import org.traccar.model.LinkedDevice;
 import org.traccar.model.Permission;
 import org.traccar.model.Position;
 import org.traccar.model.User;
@@ -101,6 +102,7 @@ public class DeviceResource extends BaseObjectResource<Device> {
             @QueryParam("all") boolean all, @QueryParam("userId") long userId,
             @QueryParam("uniqueId") List<String> uniqueIds,
             @QueryParam("id") List<Long> deviceIds,
+            @QueryParam("deviceId") long linkedFromDeviceId,
             @QueryParam("excludeAttributes") boolean excludeAttributes) throws StorageException {
 
         Columns columns = excludeAttributes ? new Columns.Exclude("attributes") : new Columns.All();
@@ -139,6 +141,12 @@ public class DeviceResource extends BaseObjectResource<Device> {
                     permissionsService.checkUser(getUserId(), userId);
                     conditions.add(new Condition.Permission(User.class, userId, baseClass).excludeGroups());
                 }
+            }
+
+            if (linkedFromDeviceId > 0) {
+                permissionsService.checkPermission(Device.class, getUserId(), linkedFromDeviceId);
+                conditions.add(new Condition.Permission(
+                        Device.class, linkedFromDeviceId, LinkedDevice.class).excludeGroups());
             }
 
             return storage.getObjects(baseClass, new Request(

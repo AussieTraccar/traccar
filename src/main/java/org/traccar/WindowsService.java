@@ -188,7 +188,7 @@ public abstract class WindowsService {
                     waitObject.wait();
                 }
             } catch (InterruptedException e) {
-                e.printStackTrace();
+                Thread.currentThread().interrupt();
             }
 
             reportStatus(Winsvc.SERVICE_STOPPED, WinError.NO_ERROR, 0);
